@@ -36,6 +36,20 @@ inputs.sneg.packages.${system}.deplexity
 | `tolaria` | Tolaria desktop app bundled with its MCP server (linux only — WebKitGTK 4.1) |
 | `tolaria-mcp` | Just the Tolaria MCP server: vault tools over stdio + a WebSocket bridge |
 | `tolaria-node-modules` | Tolaria's pnpm dependency closure, exposed so the hash can be rebuilt on its own |
+| `tolaria-src` | Tolaria's fetched source, exposed so it can be realised on its own |
+
+### One caveat: tolaria evaluates via import-from-derivation
+
+crane reads tolaria's `Cargo.lock` and `Cargo.toml` out of the fetched tree, so
+merely *evaluating* `tolaria` requires its source to already be in the store.
+Upstream's flake avoids this only because its `src` is a local path.
+
+Consequences, all of them handled in `.github/workflows/ci.yml`:
+
+- `nix flake check --no-build` cannot instantiate tolaria on a cold store.
+  Run `nix build --no-link .#tolaria-src` first.
+- `--all-systems` cannot work: evaluating `packages.aarch64-*` would need an
+  aarch64 source derivation realised on an x86_64 machine.
 
 ## Layout
 

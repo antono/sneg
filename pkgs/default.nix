@@ -23,6 +23,9 @@ in
 
   tolaria-mcp = tolaria.mcp;
   tolaria-node-modules = tolaria.nodeModules;
+
+  # Realise this and `tolaria` becomes evaluatable — see pkgs/tolaria/default.nix.
+  tolaria-src = tolaria.src;
 }
 // lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
   # chromium is linux-only in nixpkgs, so this variant is too.

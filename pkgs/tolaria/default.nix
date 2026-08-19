@@ -90,5 +90,14 @@ let
   };
 in
 {
-  inherit nodeModules mcp bundle;
+  # `src` is exported so it can be realised on its own. Evaluating the app is
+  # import-from-derivation — crane reads Cargo.lock/Cargo.toml out of the
+  # fetched tree — so the source must already exist in the store before any of
+  # this will instantiate at all. See the CI workflow.
+  inherit
+    src
+    nodeModules
+    mcp
+    bundle
+    ;
 }

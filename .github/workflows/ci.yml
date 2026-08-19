@@ -13,13 +13,19 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: DeterminateSystems/nix-installer-action@main
 
+      # Must come before the check. Evaluating tolaria is
+      # import-from-derivation (crane reads Cargo.lock/Cargo.toml out of the
+      # fetched tree), and `--no-build` refuses to realise that source, so the
+      # check cannot instantiate tolaria until the source is already in the
+      # store. Fetching it costs one tarball.
+      - run: nix build --no-link .#tolaria-src
+
       # Evaluate the outputs, but build nothing yet.
       #
-      # Not --all-systems: crane reads tolaria's Cargo.lock/Cargo.toml out of
-      # the fetched source at eval time (import-from-derivation), so evaluating
-      # packages.aarch64-* requires realising an aarch64 source derivation,
-      # which an x86_64 runner cannot do. Other systems are covered by building
-      # there, not by cross-evaluating here.
+      # Not --all-systems: the same import-from-derivation means evaluating
+      # packages.aarch64-* would need an aarch64 source derivation realised on
+      # an x86_64 runner. Other systems are covered by building there, not by
+      # cross-evaluating here.
       - run: nix flake check --no-build
 
       # Build only what fits a hosted runner. `nix flake check` without
