@@ -1,4 +1,4 @@
-# snowball
+# sneg
 
 ant0no's personal Nix package set — the custom packages used by
 [`the-flake`](https://github.com/antono/the-flake), in one repo instead of one
@@ -8,8 +8,8 @@ fork per project.
 
 ```nix
 {
-  inputs.snowball = {
-    url = "github:antono/snowball";
+  inputs.sneg = {
+    url = "github:antono/sneg";
     inputs.nixpkgs.follows = "nixpkgs";
   };
 }
@@ -18,13 +18,13 @@ fork per project.
 Then either take the overlay, which makes everything available as `pkgs.<name>`:
 
 ```nix
-nixpkgs.overlays = [ inputs.snowball.overlays.default ];
+nixpkgs.overlays = [ inputs.sneg.overlays.default ];
 ```
 
 or reach for a single package directly:
 
 ```nix
-inputs.snowball.packages.${system}.deplexity
+inputs.sneg.packages.${system}.deplexity
 ```
 
 ## Packages
