@@ -33,6 +33,9 @@ inputs.snowball.packages.${system}.deplexity
 | --- | --- |
 | `deplexity` | Export Perplexity AI conversations, spaces and profile to JSON/Markdown/PDF |
 | `deplexity-with-chromium` | Same, bundling Chromium so `deplexity login` works out of the box (linux only) |
+| `tolaria` | Tolaria desktop app bundled with its MCP server (linux only — WebKitGTK 4.1) |
+| `tolaria-mcp` | Just the Tolaria MCP server: vault tools over stdio + a WebSocket bridge |
+| `tolaria-node-modules` | Tolaria's pnpm dependency closure, exposed so the hash can be rebuilt on its own |
 
 ## Layout
 
@@ -45,6 +48,19 @@ pkgs/<name>/package.nix
 
 `pkgs/default.nix` is the single source of truth: `overlays.default` and
 `packages.<system>` are both derived from it.
+
+A package that ships several outputs from one source tree (tolaria) gets a
+directory with a `default.nix` returning a set, which `pkgs/default.nix` splices
+into the package set under its final names.
+
+Two rules the overlay has to obey:
+
+- Anything deciding **which attributes exist** must read `prev`, not `final`.
+  Reading `final.stdenv` there sends the nixpkgs stdenv bootstrap into infinite
+  recursion.
+- Extra flake inputs (`fenix`, `crane` — both only for tolaria) reach packages
+  through the `inputs` argument threaded from `flake.nix` via `overlay.nix`.
+  Prefer packages that need nothing beyond nixpkgs.
 
 ## Add a package
 

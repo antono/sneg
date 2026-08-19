@@ -12,5 +12,19 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: DeterminateSystems/nix-installer-action@main
-      # Builds every package in ./pkgs for x86_64-linux, via `checks`.
-      - run: nix flake check -L
+
+      # Evaluate the outputs, but build nothing yet.
+      #
+      # Not --all-systems: crane reads tolaria's Cargo.lock/Cargo.toml out of
+      # the fetched source at eval time (import-from-derivation), so evaluating
+      # packages.aarch64-* requires realising an aarch64 source derivation,
+      # which an x86_64 runner cannot do. Other systems are covered by building
+      # there, not by cross-evaluating here.
+      - run: nix flake check --no-build
+
+      # Build only what fits a hosted runner. `nix flake check` without
+      # --no-build would also build .#tolaria, a Tauri/WebKitGTK app whose
+      # Rust dependency closure exceeds the runner's disk. That one is
+      # deliberately NOT covered here — build it locally, or move this job to
+      # a self-hosted runner if it needs CI coverage.
+      - run: nix build -L .#deplexity .#deplexity-with-chromium .#tolaria-mcp

@@ -1,10 +1,21 @@
 {
   description = "ant0no's personal package set";
 
-  inputs.nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+
+    # Only for tolaria: a pinned Rust toolchain (fenix) and the Rust builder
+    # (crane) its Tauri package is written against. Packages that need nothing
+    # beyond nixpkgs should stay that way.
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    crane.url = "github:ipetkov/crane";
+  };
 
   outputs =
-    { self, nixpkgs }:
+    { self, nixpkgs, ... }@inputs:
     let
       inherit (nixpkgs) lib;
 
@@ -19,7 +30,7 @@
     in
     {
       # Consumers get every package in ./pkgs as `pkgs.<name>`.
-      overlays.default = import ./overlay.nix;
+      overlays.default = import ./overlay.nix inputs;
 
       packages = forAllSystems (
         pkgs:
@@ -33,6 +44,7 @@
             import ./pkgs {
               final = pkgs;
               prev = pkgs;
+              inherit inputs;
             }
           );
         in
