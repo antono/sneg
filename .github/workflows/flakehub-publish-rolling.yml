@@ -14,6 +14,16 @@ jobs:
         with:
           persist-credentials: false
       - uses: "DeterminateSystems/determinate-nix-action@v3"
+
+      # Must come before the push. flakehub-push evaluates the outputs of
+      # *every* system, and evaluating tolaria is import-from-derivation
+      # (crane reads Cargo.lock/Cargo.toml out of the fetched tree), so the
+      # aarch64 source derivation would have to be realised on an x86_64
+      # runner — "Reason: platform mismatch". The source is a fixed-output
+      # derivation, so its store path is content-addressed and identical
+      # across systems: realising it once here satisfies all of them.
+      - run: nix build --no-link .#tolaria-src
+
       - uses: "DeterminateSystems/flakehub-push@main"
         with:
           name: "antono/sneg"
