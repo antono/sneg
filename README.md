@@ -37,6 +37,82 @@ inputs.sneg.packages.${system}.deplexity
 | `tolaria-mcp` | Just the Tolaria MCP server: vault tools over stdio + a WebSocket bridge |
 | `tolaria-node-modules` | Tolaria's pnpm dependency closure, exposed so the hash can be rebuilt on its own |
 | `tolaria-src` | Tolaria's fetched source, exposed so it can be realised on its own |
+| `argocd-mcp` | MCP server for Argo CD |
+| `fibery-mcp-server` | MCP server for Fibery |
+| `freecad-mcp` | MCP server for FreeCAD (pairs with an addon installed into FreeCAD) |
+| `greenhouse-mcp` | MCP server for the Greenhouse Harvest API |
+| `mcp-musescore` | MCP server for MuseScore (pairs with a QML plugin) |
+| `signoz-mcp-server` | MCP server for SigNoz |
+
+## MCP servers
+
+The servers above are the ones [`mcp-servers-nix`](https://github.com/natsukium/mcp-servers-nix)
+does not ship. There is no fork of it: sneg's servers plug into upstream's
+module system, and `lib.mkConfig` is a drop-in for upstream's that knows about
+both sides.
+
+```nix
+programs.mcp.configFile = inputs.sneg.lib.mkConfig pkgs {
+  programs = {
+    # from mcp-servers-nix
+    chrome-devtools.enable = true;
+    context7.enable = true;
+    nixos.enable = true;
+    playwright.enable = true;
+    terraform.enable = true;
+
+    # from sneg
+    argocd = {
+      enable = true;
+      baseUrl = "https://argocd.example.com";
+      passwordCommand.ARGOCD_API_TOKEN = [ "cat" "/run/secrets/argocd" ];
+    };
+    signoz.enable = true;
+  };
+};
+```
+
+Secrets go through `envFile` or `passwordCommand`, never `env` or `args` —
+everything in `/nix/store` is world-readable. That is why sneg's modules expose
+hosts and URLs as options but never tokens.
+
+Prefer upstream's version of a server whenever it gains one: when
+`chrome-devtools` landed there, sneg's copy was deleted rather than kept.
+
+### How the composition works
+
+Upstream's `lib.evalModule` takes the nixpkgs instance it resolves server
+packages from, plus one module. Both are seams:
+
+- extending nixpkgs with `overlays.mcp-servers` makes `programs.<name>.package`
+  resolve sneg's servers by name, exactly as it resolves upstream's;
+- the module can `imports` sneg's server modules, which are ordinary
+  mcp-servers-nix modules built on upstream's `mkServerModule` specialArg.
+
+`lib/default.nix` does both. If you would rather wire it yourself:
+
+```nix
+inputs.mcp-servers-nix.lib.mkConfig (pkgs.extend inputs.sneg.overlays.mcp-servers) {
+  imports = inputs.sneg.lib.serverModules;
+  programs.signoz.enable = true;
+}
+```
+
+`checks.<system>.mcp-servers` renders every server from both sides into one
+config file, so a bad package name or a clash with an upstream module fails
+here rather than at the consumer.
+
+## Layout for MCP servers
+
+```
+lib/default.nix                mkConfig / evalModule / serverModules
+modules/mcp-servers/<name>.nix one file per server, auto-discovered
+pkgs/mcp-servers/<name>/package.nix
+tests/mcp-servers.nix          the composition check
+```
+
+Package attribute names must match the `packageName` its module passes to
+`mkServerModule` — that is the only thing tying the two halves together.
 
 ### One caveat: tolaria evaluates via import-from-derivation
 

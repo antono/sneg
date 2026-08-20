@@ -2,6 +2,9 @@
 # derived from this, so adding a package means one directory under ./pkgs
 # and one line here.
 #
+# MCP servers live in ./mcp-servers and are spliced in below, so that
+# `overlays.mcp-servers` can offer them on their own — see ../lib/default.nix.
+#
 # `final` is the overlay fixed point — use it for callPackage and for
 # referring to other packages. `prev` is the package set as it was before
 # this overlay; anything that decides *which attributes exist* must read
@@ -18,7 +21,8 @@ let
   # returns a set rather than a single derivation.
   tolaria = final.callPackage ./tolaria { inherit (inputs) fenix crane; };
 in
-{
+import ./mcp-servers { inherit final prev; }
+// {
   deplexity = final.callPackage ./deplexity/package.nix { };
 
   tolaria-mcp = tolaria.mcp;
