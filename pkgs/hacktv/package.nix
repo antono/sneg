@@ -10,7 +10,7 @@
   stdenv,
   fetchFromGitHub,
   pkg-config,
-  ffmpeg,
+  ffmpeg_6,
   freetype,
   hackrf,
   libpng,
@@ -43,7 +43,15 @@ stdenv.mkDerivation {
   # compiles in whichever it finds, so the buildInputs decide which -o modes
   # exist. osmo-fl2k is not in nixpkgs, hence no `fl2k` output mode.
   buildInputs = [
-    ffmpeg
+    # Pinned to ffmpeg 6: av_ffmpeg.c sets the resampler's input layout with
+    # av_opt_set_int(swr, "in_channel_layout", ...) — an option swresample
+    # removed in ffmpeg 7 — while the av_opt_set_chlayout("in_chlayout", ...)
+    # call that replaces it sits commented out just below. Built against 7 or
+    # newer the layout is never set, swr_init fails with `input channel layout
+    # "" is invalid`, and every input dies at "Failed to initialise the
+    # resampling context" — silent video at best, and an endless reopen loop
+    # under --repeat. Drop the pin once upstream finishes the port.
+    ffmpeg_6
     freetype
     hackrf
     libpng
