@@ -12,4 +12,5 @@
   greenhouse-mcp = final.callPackage ./greenhouse-mcp/package.nix { };
   mcp-musescore = final.callPackage ./mcp-musescore/package.nix { };
   signoz-mcp-server = final.callPackage ./signoz-mcp-server/package.nix { };
+  telegram-mcp = final.callPackage ./telegram-mcp/package.nix { };
 }

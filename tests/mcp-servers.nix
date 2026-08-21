@@ -1,5 +1,5 @@
 # Proves the composition holds: the six servers taken from mcp-servers-nix and
-# the six kept here resolve their packages and render into one config file.
+# the seven kept here resolve their packages and render into one config file.
 #
 # Building this is the whole assertion — a missing package name, an option that
 # does not exist, or two modules fighting over the same `settings.servers` key
@@ -50,6 +50,22 @@ snegLib.mkConfig pkgs {
         "cat"
         "/run/secrets/signoz-api-key"
       ];
+    };
+
+    telegram = {
+      enable = true;
+      apiId = 137;
+      exposedTools = "read-only";
+      passwordCommand = {
+        TELEGRAM_API_HASH = [
+          "cat"
+          "/run/secrets/telegram-api-hash"
+        ];
+        TELEGRAM_SESSION_STRING = [
+          "cat"
+          "/run/secrets/telegram-session-string"
+        ];
+      };
     };
   };
 }
