@@ -6,12 +6,18 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Least privilege by default; `publish` widens this for itself.
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          persist-credentials: false
+      - uses: DeterminateSystems/determinate-nix-action@v3
 
       # Must come before the check. Evaluating tolaria is
       # import-from-derivation (crane reads Cargo.lock/Cargo.toml out of the
@@ -24,8 +30,8 @@ jobs:
       #
       # Not --all-systems: the same import-from-derivation means evaluating
       # packages.aarch64-* would need an aarch64 source derivation realised on
-      # an x86_64 runner. Other systems are covered by building there, not by
-      # cross-evaluating here.
+      # an x86_64 runner. `publish` covers the other systems, since
+      # flakehub-push evaluates all of them.
       - run: nix flake check --no-build
 
       # Build only what fits a hosted runner. `nix flake check` without
@@ -34,3 +40,37 @@ jobs:
       # deliberately NOT covered here — build it locally, or move this job to
       # a self-hosted runner if it needs CI coverage.
       - run: nix build -L .#deplexity .#deplexity-with-chromium .#tolaria-mcp
+
+  # Gated on `check`, so a commit that does not build cannot become a FlakeHub
+  # release. Pushes to main only: there is nothing to publish from a PR, and
+  # flakehub-push needs an id-token that PRs from forks cannot obtain.
+  #
+  # Note this job only *evaluates* the flake — `check` above is what compiles
+  # anything, which is why both jobs exist.
+  publish:
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: DeterminateSystems/determinate-nix-action@v3
+
+      # Same import-from-derivation as in `check`, and a fresh store on this
+      # runner. flakehub-push evaluates the outputs of *every* system, so
+      # without this the aarch64 source derivation would have to be realised
+      # on an x86_64 runner — "Reason: platform mismatch". The source is a
+      # fixed-output derivation, so its store path is content-addressed and
+      # identical across systems: realising it once satisfies all of them.
+      - run: nix build --no-link .#tolaria-src
+
+      - uses: DeterminateSystems/flakehub-push@main
+        with:
+          name: antono/sneg
+          rolling: true
+          visibility: public
+          include-output-paths: true
