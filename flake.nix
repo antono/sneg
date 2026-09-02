@@ -1,5 +1,5 @@
 {
-  description = "ant0no's personal package set";
+  description = "antono's personal package set";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
@@ -26,7 +26,7 @@
     let
       inherit (nixpkgs) lib;
 
-      # Matches the platforms the-flake actually configures.
+      # Matches the platforms my personal flake actually configures.
       systems = [
         "x86_64-linux"
         "aarch64-linux"

@@ -1,8 +1,7 @@
 # sneg
 
-ant0no's personal Nix package set — the custom packages used by
-[`the-flake`](https://github.com/antono/the-flake), in one repo instead of one
-fork per project.
+antono's personal Nix package set — the custom packages used by my personal
+NixOS/home-manager flake, in one repo instead of one fork per project.
 
 ## Use it
 
