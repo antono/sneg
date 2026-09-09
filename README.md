@@ -37,7 +37,7 @@ inputs.sneg.packages.${system}.deplexity
 | `tolaria-node-modules` | Tolaria's pnpm dependency closure, exposed so the hash can be rebuilt on its own |
 | `tolaria-src` | Tolaria's fetched source, exposed so it can be realised on its own |
 | `hacktv` | Analogue TV signal generator for SDR hardware |
-| `mcp-hub` | Supervises a set of MCP servers and re-exports them over one HTTP port |
+| `mcphub` | Self-hosted MCP gateway: fronts many MCP servers behind one endpoint, with a dashboard |
 | `argocd-mcp` | MCP server for Argo CD |
 | `fibery-mcp-server` | MCP server for Fibery |
 | `freecad-mcp` | MCP server for FreeCAD (pairs with an addon installed into FreeCAD) |
@@ -105,10 +105,11 @@ here rather than at the consumer.
 
 ## The hub
 
-[`mcp-hub`](https://github.com/ravitemer/mcp-hub) is not another server. It is a
-supervisor: it starts the servers it is given and re-exports all of them over
-one HTTP port, so clients that cannot spawn stdio children — mcphub.nvim above
-all — get a single stable address instead of N processes of their own.
+[`mcphub`](https://github.com/samanhappy/mcphub) is not another server. It is a
+gateway: it starts the servers listed in its settings file and re-exports all of
+them over one HTTP origin — with a dashboard, bearer keys and a CLI on top — so
+a client that cannot spawn stdio children gets a single stable address instead
+of N processes of its own.
 
 `homeManagerModules.mcphub` runs it as a user service (systemd on linux,
 launchd on darwin):
@@ -123,68 +124,89 @@ launchd on darwin):
   services.mcphub = {
     enable = true;
 
-    # Servers only the hub should see, in mcp-hub's own schema. Merged after
+    # Servers only the hub should see, in mcphub's own schema. Merged after
     # programs.mcp, so a name repeated here wins.
     servers.deploy-notes = {
+      type = "streamable-http";
       url = "https://notes.example.com/mcp";
-      headers.Authorization = "Bearer \${cmd: cat /run/secrets/notes-token}";
+      # Expanded by mcphub from its own environment, so the token itself never
+      # reaches the store.
+      headers.Authorization = "Bearer \${NOTES_TOKEN}";
     };
+
+    environmentFile = "/run/secrets/mcphub.env";
   };
 }
 ```
 
-The seam is the config file. `--config` takes JSON whose top-level `mcpServers`
-key is exactly what home-manager's `programs.mcp` already writes to
-`~/.config/mcp/mcp.json`, so `useHomeManagerServers` (on by default) hands that
-file to the hub as it stands rather than restating every server. `--config` is
-repeatable and later files win per server — the whole entry, not field by field
-— which is what orders the sources: home-manager's file, then
-`services.mcphub.servers`, then `extraConfigFiles`.
+The thing to understand about mcphub is that it *owns its settings file*. There
+is exactly one — `mcp_settings.json` — and mcphub does not merely read it: the
+admin password hash lands there on first boot, every bearer key and OAuth
+client the dashboard mints is appended to it, and every server toggled in the
+UI is written back. A store symlink fails on the first write; a file
+regenerated on every `home-manager switch` throws away the credentials that
+make the dashboard reachable.
 
-Two things in that file mean something different to mcp-hub than to a direct
-client, and the module refuses to let either pass unnoticed:
+So the module treats it as state and merges into it at every start, under one
+rule: **every top-level key the module declares replaces that key in the live
+file, and every key it does not declare is left alone.** `servers` and
+`useHomeManagerServers` declare `mcpServers`; `settings` declares whatever it
+names. `users`, `bearerKeys`, `groups`, `oauthClients`, `oauthTokens`, `prompts`
+and `resources` therefore survive untouched — and `mcpServers`, once declared,
+is declared *entirely*, so a server added through the dashboard is dropped at
+the next restart. Declare nothing and the dashboard owns the list.
 
-- `enabled = false` is home-manager's way of switching a server off. mcp-hub
-  reads `disabled` and starts everything else, so such a server would be
-  *running* under the hub. That is an assertion, not a warning.
-- `env.<VAR>.file` is rendered by home-manager as the literal string
-  `{file:/path}`, which only its per-client modules rewrite. mcp-hub resolves
-  `${VAR}`, `${env:VAR}`, `${cmd: ...}`, `${userHome}` and `${workspaceFolder}`
-  and passes anything else through untouched, so the server gets the token text
-  as its secret. That one warns.
+The merge is shallow on purpose. A recursive one would leave half-overwritten
+`systemConfig` subtrees matching neither what Nix said nor what the dashboard
+said, so `settings.systemConfig` must be restated whole. It is a jq program in
+its own store file, which is what lets `checks.<system>.mcphub-module` run it
+against fabricated inputs rather than grepping the shell command that invokes
+it.
 
-Either is fixed by restating the server whole under `services.mcphub.servers`,
-using `${cmd: cat /run/secrets/...}` for the secret.
+`useHomeManagerServers` (on by default) folds `~/.config/mcp/mcp.json` in as the
+first source of servers, read when the service starts rather than when the
+configuration is built. The two schemas line up better than the names suggest:
+`type`, `command`, `args`, `env`, `url`, `headers` and — unlike the hub this
+replaced — `enabled` all mean the same thing on both sides, so a server switched
+off in `programs.mcp` is switched off in the hub too.
 
-`extraConfigFiles` is for paths that only exist at runtime — a sops-decrypted
-file, a per-project config. mcp-hub skips a missing one silently. Secrets in
-the hub's own environment go through `environmentFile`, never `environment`:
-the latter ends up in a world-readable store file, the same rule the server
-modules follow.
+The one thing that does not survive the trip is `env.<VAR>.file`, which
+home-manager renders as the literal string `{file:/path}` for its per-client
+modules to rewrite. mcphub has no such placeholder and hands the token text to
+the server as its secret. That warns. The fix is to restate the server under
+`services.mcphub.servers` with `env.<VAR> = "${VAR}"`: mcphub expands `${VAR}`
+and `$VAR` from its *own* environment across a server's `env`, `args`, `headers`
+and `url`, so supplying the variable through `environmentFile` keeps the secret
+out of the store — the same rule the server modules follow, and the reason
+`environment` is the wrong place for one.
 
-`mcp-hub` has no default port and comes up broken rather than failing loudly
-when `--config` is empty, so the module supplies mcphub.nvim's `37373` and
-asserts that at least one config source will actually exist — `programs.mcp`
-writes nothing until it has servers, and a `--config` pointing at a file
-nobody writes gets skipped without a word.
+mcphub is configured by environment variable rather than by argument: the module
+exports `PORT`, `BASE_PATH` and `MCPHUB_SETTING_PATH` itself and leaves the rest
+— `ADMIN_PASSWORD`, `DISABLE_WEB`, `READONLY`, the timeouts — to `environment`
+and `environmentFile`. Note that it binds every interface, with no upstream
+option to narrow that, and that `settings.systemConfig.routing.skipAuth` turns
+every caller on that port into an admin who can register a stdio server. The
+module warns about the second; the first is on you.
 
-`--watch` is on by default, but it only covers a file rewritten in place, which
-in practice means `extraConfigFiles`: the generated files are store symlinks,
-and mcp-hub's watcher follows the link to an immutable store inode that is
-never written. New generations reach the hub by restarting it — through
-`Unit.X-Restart-Triggers` on linux, and through a generation marker in the
-agent's environment (which makes the plist differ, so home-manager reloads it)
-on darwin.
+New generations reach a running hub by restarting it. The start script carries
+the whole configuration in its own store path, so the unit's `ExecStart` and the
+agent's `ProgramArguments` differ whenever anything does — that is enough for
+sd-switch on linux and for home-manager's plist comparison on darwin, with no
+generation marker needed. `Unit.X-Restart-Triggers` covers the one input that is
+not baked in: the servers home-manager writes to a stable `~/.config` path.
+mcphub re-reads its settings when the mtime moves, but the merge that moves it
+runs at start, so the restart is the reload.
 
 This module is independent of `homeManagerModules.default` — the bridge writes
-`programs.mcp.servers`, the hub is pointed at the file that option generates —
-so importing both is fine and is the normal case: the bridge feeds sneg's
-servers into `programs.mcp`, and the hub picks them up from there.
+`programs.mcp.servers`, the hub merges the file that option generates — so
+importing both is fine and is the normal case: the bridge feeds sneg's servers
+into `programs.mcp`, and the hub picks them up from there.
 
 ```
-modules/mcphub.nix     the service module
-pkgs/mcp-hub/package.nix
-tests/mcphub.nix       checks.<system>.mcphub — the rendered unit and JSON
+modules/mcphub.nix        the service module
+pkgs/mcphub/package.nix
+tests/mcphub-module.nix   checks.<system>.mcphub-module — the rendered unit,
+                          the start script, and the merge rule actually run
 ```
 
 ## Layout for MCP servers
