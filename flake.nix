@@ -53,6 +53,12 @@
       # `mcp-servers.programs.<name>` into home-manager's programs.mcp.servers.
       homeManagerModules.default = import ./modules/home-manager.nix { snegLib = self.lib; };
 
+      # Runs mcp-hub as a user service, reusing the `programs.mcp` config file
+      # home-manager already writes. Independent of the module above — that one
+      # writes `programs.mcp.servers`, this one points the hub at the file it
+      # generates — so import either or both.
+      homeManagerModules.mcphub = import ./modules/mcphub.nix { overlay = self.overlays.default; };
+
       packages = forAllSystems (
         pkgs:
         let
@@ -86,6 +92,7 @@
             inherit pkgs;
             snegLib = self.lib;
           };
+          mcphub = import ./tests/mcphub.nix { inherit pkgs; };
         }
       );
 

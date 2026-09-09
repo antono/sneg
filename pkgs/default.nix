@@ -27,6 +27,8 @@ import ./mcp-servers { inherit final prev; }
 
   hacktv = final.callPackage ./hacktv/package.nix { };
 
+  mcp-hub = final.callPackage ./mcp-hub/package.nix { };
+
   tolaria-mcp = tolaria.mcp;
   tolaria-node-modules = tolaria.nodeModules;
 
