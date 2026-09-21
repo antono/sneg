@@ -5,6 +5,10 @@
 part lookup. Unlike `freecad-mcp`, there is nothing to install into KiCAD by
 hand — the package carries its own KiCAD and finds everything through it.
 
+See also [`konnect`](../konnect), the same author's Rust rewrite of this
+server. It is AGPL-3.0 and needs KiCAD 10; this one stays MIT and works against
+8 and 9, and upstream maintains both. Enabling both is fine.
+
 ## Enable it
 
 ```nix

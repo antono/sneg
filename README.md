@@ -43,6 +43,7 @@ inputs.sneg.packages.${system}.deplexity
 | `freecad-mcp` | MCP server for FreeCAD (pairs with an addon installed into FreeCAD) |
 | `greenhouse-mcp` | MCP server for the Greenhouse Harvest API |
 | `kicad-mcp` | MCP server for KiCAD (wraps a KiCAD install: its `pcbnew` bindings, CLI and libraries) |
+| `konnect` | MCP server for KiCAD 10, the Rust rewrite of the above — one binary, over KiCAD's IPC API |
 | `mcp-musescore` | MCP server for MuseScore (pairs with a QML plugin) |
 | `signoz-mcp-server` | MCP server for SigNoz |
 
@@ -81,13 +82,17 @@ hosts and URLs as options but never tokens.
 Prefer upstream's version of a server whenever it gains one: when
 `chrome-devtools` landed there, sneg's copy was deleted rather than kept.
 
-`kicad-mcp` is the one server that is not self-contained. It drives KiCAD
-through `pcbnew`, a compiled module that ships inside `kicad` rather than in
-nixpkgs' python set, so the package wraps the server around a `pkgs.kicad` of
-its own: the matching interpreter, `kicad-cli`, and the `KICAD<major>_*_DIR`
-library paths the `kicad` wrapper would otherwise be the only one to set.
-Point it at a different KiCAD with `.override { kicad = ...; }` and all four
-move together.
+The two KiCAD servers are the ones that are not self-contained: both wrap a
+`pkgs.kicad` of their own, because `kicad-cli` and the `KICAD<major>_*_DIR`
+library paths are otherwise set only by the `kicad` wrapper, which nothing here
+runs under. `kicad-mcp` needs more of it — `pcbnew` is a compiled module that
+ships inside `kicad` rather than in nixpkgs' python set, so the interpreter is
+wrapped too. Each has a README beside its package, and `.override { kicad =
+...; }` moves everything together.
+
+They are alternatives, not duplicates: `konnect` is the author's Rust rewrite —
+AGPL-3.0, KiCAD 10 only, one binary over the IPC API — while `kicad-mcp` stays
+MIT and works against 8 and 9. Enabling both is fine.
 
 ### How the composition works
 

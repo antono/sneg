@@ -1,5 +1,5 @@
 # Proves the composition holds: the six servers taken from mcp-servers-nix and
-# the eight kept here resolve their packages and render into one config file.
+# the nine kept here resolve their packages and render into one config file.
 #
 # Building this is the whole assertion — a missing package name, an option that
 # does not exist, or two modules fighting over the same `settings.servers` key
@@ -43,6 +43,10 @@ snegLib.mkConfig pkgs {
       enable = true;
       backend = "swig";
       logLevel = "debug";
+    };
+    konnect = {
+      enable = true;
+      logLevel = "konnect=debug";
     };
     musescore.enable = true;
 
