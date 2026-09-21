@@ -42,6 +42,7 @@ inputs.sneg.packages.${system}.deplexity
 | `fibery-mcp-server` | MCP server for Fibery |
 | `freecad-mcp` | MCP server for FreeCAD (pairs with an addon installed into FreeCAD) |
 | `greenhouse-mcp` | MCP server for the Greenhouse Harvest API |
+| `kicad-mcp` | MCP server for KiCAD (wraps a KiCAD install: its `pcbnew` bindings, CLI and libraries) |
 | `mcp-musescore` | MCP server for MuseScore (pairs with a QML plugin) |
 | `signoz-mcp-server` | MCP server for SigNoz |
 
@@ -79,6 +80,14 @@ hosts and URLs as options but never tokens.
 
 Prefer upstream's version of a server whenever it gains one: when
 `chrome-devtools` landed there, sneg's copy was deleted rather than kept.
+
+`kicad-mcp` is the one server that is not self-contained. It drives KiCAD
+through `pcbnew`, a compiled module that ships inside `kicad` rather than in
+nixpkgs' python set, so the package wraps the server around a `pkgs.kicad` of
+its own: the matching interpreter, `kicad-cli`, and the `KICAD<major>_*_DIR`
+library paths the `kicad` wrapper would otherwise be the only one to set.
+Point it at a different KiCAD with `.override { kicad = ...; }` and all four
+move together.
 
 ### How the composition works
 

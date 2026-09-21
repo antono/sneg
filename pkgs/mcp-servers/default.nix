@@ -10,6 +10,7 @@
   fibery-mcp-server = final.callPackage ./fibery-mcp-server/package.nix { };
   freecad-mcp = final.callPackage ./freecad-mcp/package.nix { };
   greenhouse-mcp = final.callPackage ./greenhouse-mcp/package.nix { };
+  kicad-mcp = final.callPackage ./kicad-mcp/package.nix { };
   mcp-musescore = final.callPackage ./mcp-musescore/package.nix { };
   signoz-mcp-server = final.callPackage ./signoz-mcp-server/package.nix { };
   telegram-mcp = final.callPackage ./telegram-mcp/package.nix { };
