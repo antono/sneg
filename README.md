@@ -30,22 +30,22 @@ inputs.sneg.packages.${system}.deplexity
 
 | Attribute | What |
 | --- | --- |
-| `deplexity` | Export Perplexity AI conversations, spaces and profile to JSON/Markdown/PDF |
-| `deplexity-with-chromium` | Same, bundling Chromium so `deplexity login` works out of the box (linux only) |
-| `tolaria` | Tolaria desktop app bundled with its MCP server (linux only — WebKitGTK 4.1) |
-| `tolaria-mcp` | Just the Tolaria MCP server: vault tools over stdio + a WebSocket bridge |
-| `tolaria-node-modules` | Tolaria's pnpm dependency closure, exposed so the hash can be rebuilt on its own |
-| `tolaria-src` | Tolaria's fetched source, exposed so it can be realised on its own |
-| `hacktv` | Analogue TV signal generator for SDR hardware |
-| `mcphub` | Self-hosted MCP gateway: fronts many MCP servers behind one endpoint, with a dashboard |
-| `argocd-mcp` | MCP server for Argo CD |
-| `fibery-mcp-server` | MCP server for Fibery |
-| `freecad-mcp` | MCP server for FreeCAD (pairs with an addon installed into FreeCAD) |
-| `greenhouse-mcp` | MCP server for the Greenhouse Harvest API |
-| `kicad-mcp` | MCP server for KiCAD (wraps a KiCAD install: its `pcbnew` bindings, CLI and libraries) |
-| `konnect` | MCP server for KiCAD 10, the Rust rewrite of the above — one binary, over KiCAD's IPC API |
-| `mcp-musescore` | MCP server for MuseScore (pairs with a QML plugin) |
-| `signoz-mcp-server` | MCP server for SigNoz |
+| [`deplexity`](https://github.com/clappingmonkey/Deplexity) | Export Perplexity AI conversations, spaces and profile to JSON/Markdown/PDF |
+| [`deplexity-with-chromium`](https://github.com/clappingmonkey/Deplexity) | Same, bundling Chromium so `deplexity login` works out of the box (linux only) |
+| [`tolaria`](https://github.com/antono/tolaria) | Tolaria desktop app bundled with its MCP server (linux only — WebKitGTK 4.1) |
+| [`tolaria-mcp`](https://github.com/antono/tolaria) | Just the Tolaria MCP server: vault tools over stdio + a WebSocket bridge |
+| [`tolaria-node-modules`](https://github.com/antono/tolaria) | Tolaria's pnpm dependency closure, exposed so the hash can be rebuilt on its own |
+| [`tolaria-src`](https://github.com/antono/tolaria) | Tolaria's fetched source, exposed so it can be realised on its own |
+| [`hacktv`](https://github.com/captainjack64/hacktv) | Analogue TV signal generator for SDR hardware |
+| [`mcphub`](https://github.com/samanhappy/mcphub) | Self-hosted MCP gateway: fronts many MCP servers behind one endpoint, with a dashboard |
+| [`argocd-mcp`](https://github.com/argoproj-labs/mcp-for-argocd) | MCP server for Argo CD |
+| [`fibery-mcp-server`](https://github.com/Fibery-inc/fibery-mcp-server) | MCP server for Fibery |
+| [`freecad-mcp`](https://github.com/neka-nat/freecad-mcp) | MCP server for FreeCAD (pairs with an addon installed into FreeCAD) |
+| [`greenhouse-mcp`](https://github.com/UladzislauRedzko/greenhouse-mcp) | MCP server for the Greenhouse Harvest API |
+| [`kicad-mcp`](https://github.com/mixelpixx/KiCAD-MCP-Server) | MCP server for KiCAD (wraps a KiCAD install: its `pcbnew` bindings, CLI and libraries) |
+| [`konnect`](https://github.com/mixelpixx/Konnect) | MCP server for KiCAD 10, the Rust rewrite of the above — one binary, over KiCAD's IPC API |
+| [`mcp-musescore`](https://github.com/ghchen99/mcp-musescore) | MCP server for MuseScore (pairs with a QML plugin) |
+| [`signoz-mcp-server`](https://github.com/SigNoz/signoz-mcp-server) | MCP server for SigNoz |
 
 ## MCP servers
 
