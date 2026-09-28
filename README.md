@@ -296,5 +296,5 @@ nix flake check -L
 ```bash
 nix develop          # nix-update, nix-init, nixfmt-tree
 nix fmt
-nix build .#deplexity && ./result/bin/deplexity --version
+nix build .#deplexity && ./result/bin/deplexity version
 ```

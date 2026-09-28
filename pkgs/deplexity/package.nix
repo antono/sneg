@@ -10,7 +10,7 @@
 }:
 
 let
-  version = "0.3.0";
+  version = "0.4.3";
 in
 buildGoModule {
   pname = "deplexity";
@@ -20,10 +20,10 @@ buildGoModule {
     owner = "clappingmonkey";
     repo = "Deplexity";
     tag = "v${version}";
-    hash = "sha256-eX0uT2hDqHsqkAXma25GejAmWHrDctqMI6iwW5aALn4=";
+    hash = "sha256-+uQ9PR52AAmgQRLK1RxDOrVfI6YslCSTMlJ16UN5IGI=";
   };
 
-  vendorHash = "sha256-cJ64PI6bF8LylyX+lVjTmKElkZDjRpTvQC9nHWs9/60=";
+  vendorHash = "sha256-rsroyKHlSNknt66vjgKtjUq2TjCZnr4yMjLcPo45VVY=";
 
   ldflags = [
     "-s"
