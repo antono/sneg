@@ -38,10 +38,6 @@ snegLib.mkConfig pkgs {
       host = "localhost";
       port = 9876;
     };
-    fibery = {
-      enable = true;
-      host = "example.fibery.io";
-    };
     freecad.enable = true;
     greenhouse.enable = true;
     kicad = {
