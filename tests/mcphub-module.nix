@@ -363,7 +363,23 @@ pkgs.runCommand "sneg-mcphub-module"
       "users": [ { "username": "admin", "password": "hash" } ],
       "bearerKeys": [ { "key": "kept" } ],
       "systemConfig": { "routing": { "skipAuth": true } },
-      "mcpServers": { "added-in-dashboard": { "command": "gone" } }
+      "mcpServers": {
+        "added-in-dashboard": { "command": "gone" },
+        "authorized": {
+          "type": "streamable-http",
+          "url": "https://mcp.example.com/mcp",
+          "oauth": {
+            "clientId": "cid", "accessToken": "at",
+            "refreshToken": "rt", "scopes": [ "openid" ],
+            "pendingAuthorization": { "codeVerifier": "half-done" }
+          }
+        },
+        "moved": {
+          "type": "streamable-http",
+          "url": "https://old.example.com/mcp",
+          "oauth": { "clientId": "cid", "accessToken": "at" }
+        }
+      }
     }
     JSON
     cat > hm.json <<'JSON'
@@ -371,7 +387,20 @@ pkgs.runCommand "sneg-mcphub-module"
     JSON
     cat > own.json <<'JSON'
     {
-      "mcpServers": { "hub-only": { "command": "hub" }, "clash": { "command": "from-nix" } },
+      "mcpServers": {
+        "hub-only": { "command": "hub" },
+        "clash": { "command": "from-nix" },
+        "authorized": {
+          "type": "streamable-http",
+          "url": "https://mcp.example.com/mcp",
+          "oauth": { "resource": "https://mcp.example.com/mcp" }
+        },
+        "moved": {
+          "type": "streamable-http",
+          "url": "https://new.example.com/mcp",
+          "oauth": { "resource": "https://new.example.com/mcp" }
+        }
+      },
       "systemConfig": { "routing": { "enableGlobalRoute": true } }
     }
     JSON
@@ -399,6 +428,25 @@ pkgs.runCommand "sneg-mcphub-module"
       || fail "services.mcphub.servers lost to programs.mcp on a name clash"
     [ "$(jq -r '.mcpServers["added-in-dashboard"]' merged.json)" = "null" ] \
       || fail "a dashboard-added server survived a declared mcpServers"
+
+    # A remote server's OAuth credentials are the exception to that wipe, and
+    # they are the whole reason a declared remote server is usable at all: the
+    # hub has to re-run the browser authorization after every switch otherwise.
+    [ "$(jq -r '.mcpServers.authorized.oauth.accessToken' merged.json)" = "at" ] \
+      || fail "the merge discarded a token the hub had already obtained"
+    [ "$(jq -r '.mcpServers.authorized.oauth.clientId' merged.json)" = "cid" ] \
+      || fail "the merge discarded the client registration, forcing a new one"
+    [ "$(jq -r '.mcpServers.authorized.oauth.resource' merged.json)" = "https://mcp.example.com/mcp" ] \
+      || fail "the merge let runtime state overwrite declared oauth config"
+    [ "$(jq -r '.mcpServers.authorized.oauth.pendingAuthorization' merged.json)" = "null" ] \
+      || fail "the merge resumed a half-finished authorization across a restart"
+    # Same name, different place: a credential minted for the old url says
+    # nothing to the new one, so it goes with everything else.
+    [ "$(jq -r '.mcpServers.moved.oauth.accessToken' merged.json)" = "null" ] \
+      || fail "the merge carried a token across a change of url"
+    # Nothing in the state under this name, so nothing to carry.
+    [ "$(jq -r '.mcpServers["hub-only"].oauth' merged.json)" = "null" ] \
+      || fail "the merge invented an oauth block for a server that never had one"
 
     # ...and with nothing declared, the dashboard keeps its list.
     echo '{}' > empty.json

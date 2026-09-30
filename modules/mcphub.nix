@@ -97,10 +97,46 @@ let
   # one piece of this module that is neither Nix nor systemd, and asserting on
   # the text of a shell command would prove nothing about what it does.
   mergeProgram = pkgs.writeText "mcphub-merge.jq" ''
+    # Credentials the hub obtains for itself from a remote server's
+    # authorization server, and which Nix must never declare: this file is
+    # rendered into a world-readable /nix/store path, so a token written here
+    # would be readable by every local user. Since the declared server object
+    # replaces the live one wholesale, they are carried back out of the state.
+    #
+    # Only when the server still points where it pointed when they were issued:
+    # a client_id minted for one resource is a credential for that resource, and
+    # carrying it over to a new url or transport would present it to a server
+    # that never asked for it.
+    #
+    # `pendingAuthorization` is deliberately absent. It is a half-finished
+    # exchange whose code_verifier binds it to one attempt, so it could not be
+    # resumed across a restart regardless; dropping it makes the next start
+    # begin a clean authorization instead of one that can never complete.
+    def runtimeOauth:
+      { clientId, accessToken, refreshToken, scopes }
+      | with_entries(select(.value != null));
+
+    def carryOauth($live):
+      (($live.oauth // {}) | runtimeOauth) as $keep
+      | if ($keep == {})
+           or ($live.url != .url)
+           or ($live.type != .type)
+        then .
+        else . + { oauth: ((.oauth // {}) + $keep) }
+        end;
+
     .[0] as $state | .[1] as $hm | .[2] as $own
-    | (($hm.mcpServers // {}) + ($own.mcpServers // {})) as $servers
-    | ($state + $own)
-    | if $servers == {} then . else .mcpServers = $servers end
+    | (($state.mcpServers // {}) as $live
+       | (($hm.mcpServers // {}) + ($own.mcpServers // {})) as $declared
+       | ($state + $own)
+       | if $declared == {} then .
+         else .mcpServers = (
+           $declared
+           | to_entries
+           | map(. as $e | .value = (.value | carryOauth($live[$e.key] // {})))
+           | from_entries
+         )
+         end)
   '';
 
   # Prepended, not replaced: mcphub hands its own PATH to every stdio server it
@@ -303,8 +339,17 @@ in
 
         Declaring anything here (or through `useHomeManagerServers`) hands the
         whole `mcpServers` key to Nix: servers added through the dashboard are
-        dropped at the next restart. Leave both empty and the dashboard owns
-        the list.
+        dropped at the next restart. Leave both empty and the dashboard owns the
+        list.
+
+        The one thing that survives that is a remote server's OAuth credentials.
+        `clientId`, `accessToken`, `refreshToken` and `scopes` are copied out of
+        the live settings and back onto the declared server, so a remote server
+        authorized here keeps working across `home-manager switch` instead of
+        falling back to `oauth_required` every time. They are carried only while
+        the server's `url` and `type` are unchanged; point it somewhere else and
+        the old credential is dropped with the rest of the object, since a token
+        minted for one resource means nothing to another.
 
         This is rendered into a /nix/store file, which is world-readable. For
         anything secret use `''${VAR}` — mcphub expands `''${VAR}` and `$VAR`
