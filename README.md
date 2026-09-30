@@ -39,6 +39,7 @@ inputs.sneg.packages.${system}.deplexity
 | [`hacktv`](https://github.com/captainjack64/hacktv) | Analogue TV signal generator for SDR hardware |
 | [`mcphub`](https://github.com/samanhappy/mcphub) | Self-hosted MCP gateway: fronts many MCP servers behind one endpoint, with a dashboard |
 | [`argocd-mcp`](https://github.com/argoproj-labs/mcp-for-argocd) | MCP server for Argo CD |
+| [`blender-mcp`](https://projects.blender.org/lab/blender_mcp) | MCP server for Blender (pairs with an extension installed into Blender) |
 | [`fibery-mcp-server`](https://github.com/Fibery-inc/fibery-mcp-server) | MCP server for Fibery |
 | [`freecad-mcp`](https://github.com/neka-nat/freecad-mcp) | MCP server for FreeCAD (pairs with an addon installed into FreeCAD) |
 | [`greenhouse-mcp`](https://github.com/UladzislauRedzko/greenhouse-mcp) | MCP server for the Greenhouse Harvest API |

@@ -7,6 +7,7 @@
 { final, ... }:
 {
   argocd-mcp = final.callPackage ./argocd-mcp/package.nix { };
+  blender-mcp = final.callPackage ./blender-mcp/package.nix { };
   fibery-mcp-server = final.callPackage ./fibery-mcp-server/package.nix { };
   freecad-mcp = final.callPackage ./freecad-mcp/package.nix { };
   greenhouse-mcp = final.callPackage ./greenhouse-mcp/package.nix { };

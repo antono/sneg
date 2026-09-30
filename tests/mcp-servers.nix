@@ -1,5 +1,5 @@
 # Proves the composition holds: the six servers taken from mcp-servers-nix and
-# the nine kept here resolve their packages and render into one config file.
+# the ten kept here resolve their packages and render into one config file.
 #
 # Building this is the whole assertion — a missing package name, an option that
 # does not exist, or two modules fighting over the same `settings.servers` key
@@ -32,6 +32,11 @@ snegLib.mkConfig pkgs {
       enable = true;
       baseUrl = "https://argocd.example.com";
       readOnly = true;
+    };
+    blender = {
+      enable = true;
+      host = "localhost";
+      port = 9876;
     };
     fibery = {
       enable = true;
