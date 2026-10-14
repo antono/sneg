@@ -6,16 +6,16 @@
 
 python3Packages.buildPythonApplication {
   pname = "greenhouse-mcp";
-  version = "0.1.0-unstable-2026-07-02";
+  version = "0.1.0-unstable-2026-08-25";
 
   # UladzislauRedzko's fork of alexmeckes/greenhouse-mcp — it carries the fix
   # for list_applications' return annotation, which FastMCP validates and which
-  # makes the tool fail outright upstream.
+  # makes the tool fail outright upstream, plus the move to Harvest API v3.
   src = fetchFromGitHub {
     owner = "UladzislauRedzko";
     repo = "greenhouse-mcp";
-    rev = "4f9ee1cf08dee3cfed5f0bf5b341a234102cee50";
-    hash = "sha256-uWXA+y6YKsfegvt2TPBSeWR4k+5h18tnrGdiMuZSGGE=";
+    rev = "e7cd2ae2dd195388ffe70bd1b67e6321caf4fbcb";
+    hash = "sha256-Ye6y9mZVnlkmrsTcxExgIzZC+Hy9mqffXiglNuFOH1c=";
   };
 
   pyproject = true;
