@@ -46,6 +46,7 @@ inputs.sneg.packages.${system}.deplexity
 | [`konnect`](https://github.com/mixelpixx/Konnect) | MCP server for KiCAD 10, the Rust rewrite of the above — one binary, over KiCAD's IPC API |
 | [`mcp-musescore`](https://github.com/ghchen99/mcp-musescore) | MCP server for MuseScore (pairs with a QML plugin) |
 | [`signoz-mcp-server`](https://github.com/SigNoz/signoz-mcp-server) | MCP server for SigNoz |
+| [`telegram-mcp`](https://github.com/chigwell/telegram-mcp) | MCP server for Telegram, acting as your user account (not a bot) via Telethon |
 
 ## MCP servers
 
