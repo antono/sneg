@@ -25,22 +25,22 @@ let
   # commit out of .git, which fetchFromGitHub does not produce, so without
   # this the `get_installation_info` tool reports a null commit and no client
   # can tell which build is answering it. Bump it with `version`.
-  rev = "fa62e1ccb9eba359519bf8e3eab53a6cffeee33c";
+  rev = "6bbe3e4f890ba1d37c0e5d5f38ccd03d90958c9e";
 
   inherit (kicad.passthru.libraries) footprints symbols;
 in
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "konnect";
-  version = "0.12.1";
+  version = "0.13.0";
 
   src = fetchFromGitHub {
     owner = "mixelpixx";
     repo = "Konnect";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-06cMovUbim50kYZRMsIXXXtrlMXWkOQBEGbNC16wsTY=";
+    hash = "sha256-8grXUwq5L25TFBSylB36yAaEPfNV7dos9kf+1UH6xDg=";
   };
 
-  cargoHash = "sha256-D/rSitPerFDPmYE512Pesuj83KWyDACoHVrhNQ24x9E=";
+  cargoHash = "sha256-q/cWeNORFjPp3YFoiICGQVGolL7hd+oCu3Fvj+8IhUc=";
 
   nativeBuildInputs = [
     cmake
