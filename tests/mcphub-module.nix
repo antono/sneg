@@ -369,7 +369,7 @@ pkgs.runCommand "sneg-mcphub-module"
           "type": "streamable-http",
           "url": "https://mcp.example.com/mcp",
           "oauth": {
-            "clientId": "cid", "accessToken": "at",
+            "clientId": "cid", "clientSecret": "cs", "accessToken": "at",
             "refreshToken": "rt", "scopes": [ "openid" ],
             "pendingAuthorization": { "codeVerifier": "half-done" }
           }
@@ -377,7 +377,7 @@ pkgs.runCommand "sneg-mcphub-module"
         "moved": {
           "type": "streamable-http",
           "url": "https://old.example.com/mcp",
-          "oauth": { "clientId": "cid", "accessToken": "at" }
+          "oauth": { "clientId": "cid", "clientSecret": "cs", "accessToken": "at" }
         }
       }
     }
@@ -436,6 +436,10 @@ pkgs.runCommand "sneg-mcphub-module"
       || fail "the merge discarded a token the hub had already obtained"
     [ "$(jq -r '.mcpServers.authorized.oauth.clientId' merged.json)" = "cid" ] \
       || fail "the merge discarded the client registration, forcing a new one"
+    # Dynamic registration returns the secret with the id; keeping one without
+    # the other leaves a confidential client failing every refresh.
+    [ "$(jq -r '.mcpServers.authorized.oauth.clientSecret' merged.json)" = "cs" ] \
+      || fail "the merge kept the client id but dropped its secret"
     [ "$(jq -r '.mcpServers.authorized.oauth.resource' merged.json)" = "https://mcp.example.com/mcp" ] \
       || fail "the merge let runtime state overwrite declared oauth config"
     [ "$(jq -r '.mcpServers.authorized.oauth.pendingAuthorization' merged.json)" = "null" ] \
@@ -444,6 +448,8 @@ pkgs.runCommand "sneg-mcphub-module"
     # nothing to the new one, so it goes with everything else.
     [ "$(jq -r '.mcpServers.moved.oauth.accessToken' merged.json)" = "null" ] \
       || fail "the merge carried a token across a change of url"
+    [ "$(jq -r '.mcpServers.moved.oauth.clientSecret' merged.json)" = "null" ] \
+      || fail "the merge carried a client secret across a change of url"
     # Nothing in the state under this name, so nothing to carry.
     [ "$(jq -r '.mcpServers["hub-only"].oauth' merged.json)" = "null" ] \
       || fail "the merge invented an oauth block for a server that never had one"

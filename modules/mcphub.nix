@@ -108,12 +108,16 @@ let
     # carrying it over to a new url or transport would present it to a server
     # that never asked for it.
     #
+    # `clientSecret` travels with `clientId`: dynamic registration hands the hub
+    # both, and a confidential client that keeps its id but loses its secret
+    # fails every token refresh with invalid_client.
+    #
     # `pendingAuthorization` is deliberately absent. It is a half-finished
     # exchange whose code_verifier binds it to one attempt, so it could not be
     # resumed across a restart regardless; dropping it makes the next start
     # begin a clean authorization instead of one that can never complete.
     def runtimeOauth:
-      { clientId, accessToken, refreshToken, scopes }
+      { clientId, clientSecret, accessToken, refreshToken, scopes }
       | with_entries(select(.value != null));
 
     def carryOauth($live):
@@ -343,10 +347,11 @@ in
         list.
 
         The one thing that survives that is a remote server's OAuth credentials.
-        `clientId`, `accessToken`, `refreshToken` and `scopes` are copied out of
-        the live settings and back onto the declared server, so a remote server
-        authorized here keeps working across `home-manager switch` instead of
-        falling back to `oauth_required` every time. They are carried only while
+        `clientId`, `clientSecret`, `accessToken`, `refreshToken` and `scopes`
+        are copied out of the live settings and back onto the declared server,
+        so a remote server authorized here keeps working across
+        `home-manager switch` instead of falling back to `oauth_required` every
+        time. They are carried only while
         the server's `url` and `type` are unchanged; point it somewhere else and
         the old credential is dropped with the rest of the object, since a token
         minted for one resource means nothing to another.
