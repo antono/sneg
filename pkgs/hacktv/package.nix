@@ -19,7 +19,7 @@
 }:
 
 let
-  version = "0-unstable-2026-06-05";
+  version = "0-unstable-2026-10-12";
 in
 stdenv.mkDerivation {
   pname = "hacktv";
@@ -28,8 +28,8 @@ stdenv.mkDerivation {
   src = fetchFromGitHub {
     owner = "captainjack64";
     repo = "hacktv";
-    rev = "6e135bfe6261f9b45efe49fdde11920843f88ecf";
-    hash = "sha256-x7cB3R/baMt2xEmYN4IKwB1B2VLRIUwk97XC7inRV3E=";
+    rev = "89af79282222435f961a47d4b2b9a75f77905e54";
+    hash = "sha256-QxyVwetRv59+yrLBiPIvARVVoufGRsEbHINuApnPTIA=";
   };
 
   # The Makefile lives in src/, not at the repo root.
