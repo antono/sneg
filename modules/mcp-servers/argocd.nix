@@ -25,6 +25,21 @@ in
       example = "https://argocd.example.com";
     };
 
+    tokenRegistryPath = lib.mkOption {
+      # A string, not `types.path`: a Nix path literal would copy the token
+      # file itself into the world-readable /nix/store.
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = ''
+        Runtime path of a JSON token registry, exported as
+        ARGOCD_TOKEN_REGISTRY_PATH: an array of `{ baseUrl, token }` entries
+        that lets one server reach several Argo CD instances, each with its own
+        token. Point it at a decrypted secret (agenix, sops-nix), not at a file
+        in the flake.
+      '';
+      example = "/run/agenix/argocd-token-registry";
+    };
+
     readOnly = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -52,6 +67,9 @@ in
       args = [ "stdio" ];
       env =
         lib.optionalAttrs (cfg.baseUrl != null) { ARGOCD_BASE_URL = cfg.baseUrl; }
+        // lib.optionalAttrs (cfg.tokenRegistryPath != null) {
+          ARGOCD_TOKEN_REGISTRY_PATH = cfg.tokenRegistryPath;
+        }
         // lib.optionalAttrs cfg.readOnly { MCP_READ_ONLY = "true"; }
         // lib.optionalAttrs (!cfg.tlsRejectUnauthorized) { NODE_TLS_REJECT_UNAUTHORIZED = "0"; };
     };

@@ -31,6 +31,7 @@ snegLib.mkConfig pkgs {
     argocd = {
       enable = true;
       baseUrl = "https://argocd.example.com";
+      tokenRegistryPath = "/run/agenix/argocd-token-registry";
       readOnly = true;
     };
     blender = {
