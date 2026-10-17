@@ -7,23 +7,48 @@
 }:
 
 let
-  pythonEnv = python3.withPackages (ps: [
-    ps.mcp
+  # Upstream asks for fastmcp>=4,<5; nixpkgs has 3.4.7. Everything the server
+  # imports from it — FastMCP, fastmcp.apps, ToolResult, ToolError — is already
+  # in 3.x, and the check below runs upstream's suite against this env.
+  pythonDeps = ps: [
+    ps.fastmcp
     ps.websockets
-  ]);
+  ];
+  pythonEnv = python3.withPackages pythonDeps;
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "mcp-musescore";
-  version = "0-unstable-2026-04-23";
+  version = "0-unstable-2026-10-07";
 
   src = fetchFromGitHub {
     owner = "ghchen99";
     repo = "mcp-musescore";
-    rev = "828eb9be5acce90072d7301c81bea9efe0514354";
-    hash = "sha256-mig1hSABip+V1pGBDEqGiXLQDk24KfqXYs8Vq1zLsdY=";
+    rev = "cab6a74bb8c534bc5159c10ba8693d3267624d0e";
+    hash = "sha256-c/LqgWymo6VYy1zYecZQHqOhtPY8CxxGQqkkwP/B0PE=";
   };
 
   nativeBuildInputs = [ makeWrapper ];
+
+  # tests/ drives the server against a mock of the QML plugin's websocket, so
+  # it needs no MuseScore.
+  #
+  # Two assertions read results through fastmcp 4's client, which renamed the
+  # MCP fields to snake_case; on 3.x they still carry the protocol's own names.
+  # The server never touches either, so the tests are pointed at the 3.x
+  # spelling rather than dropped — they still check what they were written to.
+  doCheck = true;
+  preCheck = ''
+    substituteInPlace tests/test_integration.py \
+      --replace-fail 'page.mime_type' 'page.mimeType'
+    substituteInPlace tests/test_server.py \
+      --replace-fail 'tool.input_schema' 'tool.inputSchema'
+  '';
+  nativeCheckInputs = [ (python3.withPackages (ps: pythonDeps ps ++ [ ps.pytest ])) ];
+  checkPhase = ''
+    runHook preCheck
+    pytest -p no:cacheprovider
+    runHook postCheck
+  '';
 
   # Upstream ships no packaging metadata (no pyproject.toml, no setup.py) — just
   # a top-level server.py importing from ./src. Install the sources verbatim and
