@@ -32,13 +32,13 @@
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "mcphub";
-  version = "1.0.35";
+  version = "1.1.5";
 
   src = fetchFromGitHub {
     owner = "samanhappy";
     repo = "mcphub";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-1GJqgsFNOq4e+zdQz76mIhLx13EyMPyvpMtb22dwHLQ=";
+    hash = "sha256-aXiB46Ziih7JL/UwJ6gaCT8DxMkMUeFTNRth1gu1ZHo=";
   };
 
   # `pnpm install --force` in the fetcher pulls every platform's optional
@@ -47,7 +47,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_10;
     fetcherVersion = 4;
-    hash = "sha256-fr7v6bqTNy+5RiL8WKv164BMYTcVH3YxKKLMxAkMhPc=";
+    hash = "sha256-meXtX9CZT9vfZtB9r3wQJh3LZt8+drma8SW6Uc8+eKo=";
   };
 
   # pnpm_10 rather than the default: upstream's lockfile is version 9.0 and its
@@ -81,8 +81,21 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # was, which is where the weight actually is — pruning in place took the
     # visible entries from 907 to 40 and the output from 620M to 620M. The pnpm
     # store is still the one unpacked by pnpmConfigHook, so this stays offline.
+    #
+    # zod is the exception. dist/utils/settingsSync.js imports it at runtime,
+    # but upstream lists it under devDependencies only — npm's flat layout
+    # hoists the copy the MCP SDK pulls in, pnpm's strict one does not. The
+    # prod tree still carries that copy under .pnpm, just without the top-level
+    # link, so remember where the full install pointed it and put it back.
+    # Moving zod into dependencies instead would break --frozen-lockfile.
+    zodLink=$(readlink node_modules/zod)
     rm -rf node_modules
     pnpm install --prod --offline --frozen-lockfile --ignore-scripts
+    [ -d "node_modules/$zodLink" ] || {
+      echo "zod ($zodLink) is no longer in the prod tree" >&2
+      exit 1
+    }
+    ln -s "$zodLink" node_modules/zod
 
     runHook postBuild
   '';
