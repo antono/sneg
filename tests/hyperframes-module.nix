@@ -23,6 +23,7 @@ let
           options = {
             warnings = stub (lib.types.listOf lib.types.str) [ ];
             home.packages = stub (lib.types.listOf lib.types.package) [ ];
+            home.sessionVariables = stub (lib.types.attrsOf lib.types.str) { };
             home.file = stub (lib.types.attrsOf lib.types.anything) { };
             programs.claude-code = {
               enable = stub lib.types.bool false;
@@ -62,6 +63,10 @@ assert lib.elem package plugins.home.packages;
 assert plugins.programs.claude-code.plugins.hyperframes == plugin;
 assert plugins.programs.codex.plugins == [ plugin ];
 assert plugins.home.file == { };
+assert plugins.home.sessionVariables.HYPERFRAMES_SKIP_SKILLS == "1";
+assert plugins.home.sessionVariables.HYPERFRAMES_FFMPEG_PATH == lib.getExe' package.ffmpeg "ffmpeg";
+assert lib.hasSuffix "/bin/chrome-headless-shell"
+  plugins.home.sessionVariables.HYPERFRAMES_BROWSER_PATH;
 
 assert agents.programs.claude-code.plugins.hyperframes == plugin;
 assert agents.programs.codex.plugins == [ ];
@@ -120,6 +125,11 @@ pkgs.runCommand "sneg-hyperframes-module" { nativeBuildInputs = [ pkgs.nodejs ];
   for name in ${lib.escapeShellArgs plugin.skillNames}; do
     test -f ${plugin}/skills/$name/SKILL.md
   done
+
+  # The browser the session points npx at must actually be there.
+  test -x ${plugins.home.sessionVariables.HYPERFRAMES_BROWSER_PATH}
+  # …and drop the Wayland display, which costs headless Chrome its WebGL.
+  grep -q 'unset WAYLAND_DISPLAY' ${plugins.home.sessionVariables.HYPERFRAMES_BROWSER_PATH}
 
   touch $out
 ''

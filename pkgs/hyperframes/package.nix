@@ -9,6 +9,7 @@
   ffmpeg-headless,
   playwright-driver,
   callPackage,
+  runCommand,
 }:
 
 # Built from the npm tarball rather than the monorepo: upstream's bun workspace
@@ -28,6 +29,22 @@ let
     withWebkit = false;
     withFfmpeg = false;
   };
+
+  # The headless shell at a fixed path, so the module can point a CLI that is
+  # not this wrapper (an `npx hyperframes` in a project's scripts) at it too.
+  # The directory name embeds Playwright's revision and the arch, so look the
+  # binary up instead of spelling it out.
+  #
+  # WAYLAND_DISPLAY goes: with it set, ANGLE asks Vulkan for
+  # VK_KHR_wayland_surface, SwiftShader has none, and the page gets no WebGL
+  # at all -- Studio's export then fails its SwiftShader check with an empty
+  # vendor and renderer. A headless browser needs no display anyway. Only the
+  # browser loses it, not the CLI, which may still start desktop apps.
+  browser = runCommand "hyperframes-browser" { nativeBuildInputs = [ makeWrapper ]; } ''
+    shell=$(find -L ${headlessShell} -type f -name chrome-headless-shell -perm -u+x | head -n1)
+    test -n "$shell"
+    makeWrapper "$shell" $out/bin/chrome-headless-shell --unset WAYLAND_DISPLAY
+  '';
 in
 buildNpmPackage (finalAttrs: {
   pname = "hyperframes";
@@ -83,12 +100,6 @@ buildNpmPackage (finalAttrs: {
   # environment. Updates and skill installs belong to Nix and home-manager, not
   # to the CLI rewriting ~/.claude behind their back.
   postFixup = ''
-    ${lib.optionalString stdenv.hostPlatform.isLinux ''
-      # The directory name embeds Playwright's revision and the arch, so look
-      # the binary up instead of spelling it out.
-      browser=$(find -L ${headlessShell} -type f -name chrome-headless-shell -perm -u+x | head -n1)
-      test -n "$browser"
-    ''}
     for bin in $out/bin/hyperframes $out/bin/hyperframes-localize-fonts; do
       wrapProgram "$bin" \
         --set-default HYPERFRAMES_FFMPEG_PATH ${lib.getExe' ffmpeg-headless "ffmpeg"} \
@@ -97,7 +108,7 @@ buildNpmPackage (finalAttrs: {
         --set-default HYPERFRAMES_NO_AUTO_INSTALL 1 \
         --set-default HYPERFRAMES_SKIP_SKILLS 1 \
         --set-default HYPERFRAMES_NO_TELEMETRY 1 \
-        ${lib.optionalString stdenv.hostPlatform.isLinux "--set-default HYPERFRAMES_BROWSER_PATH \"$browser\""}
+        ${lib.optionalString stdenv.hostPlatform.isLinux "--set-default HYPERFRAMES_BROWSER_PATH ${browser}/bin/chrome-headless-shell"}
     done
   '';
 
@@ -111,7 +122,10 @@ buildNpmPackage (finalAttrs: {
   passthru = {
     # The skills, as a plugin wired to this CLI — see ./plugin.nix.
     plugin = callPackage ./plugin.nix { hyperframes = finalAttrs.finalPackage; };
-  };
+    # What the wrapper points the CLI at, for the module's session variables.
+    ffmpeg = ffmpeg-headless;
+  }
+  // lib.optionalAttrs stdenv.hostPlatform.isLinux { inherit browser; };
 
   meta = {
     description = "Write HTML, render video: deterministic MP4s from HTML, CSS and seekable animations";

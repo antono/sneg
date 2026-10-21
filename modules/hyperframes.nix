@@ -96,6 +96,25 @@ in
     lib.mkMerge [
       { home.packages = [ cfg.package ]; }
 
+      # The wrapper sets these for itself only. Anything else that runs the
+      # CLI -- `npx hyperframes` from a project's package.json, or a skill
+      # that slipped past the plugin launcher -- would otherwise go without
+      # ffmpeg, download a Chrome that does not run on NixOS, and rewrite the
+      # skills in ~/.claude/skills behind home-manager's back.
+      {
+        home.sessionVariables = {
+          HYPERFRAMES_SKIP_SKILLS = "1";
+          HYPERFRAMES_NO_AUTO_INSTALL = "1";
+        }
+        // lib.optionalAttrs (cfg.package ? ffmpeg) {
+          HYPERFRAMES_FFMPEG_PATH = lib.getExe' cfg.package.ffmpeg "ffmpeg";
+          HYPERFRAMES_FFPROBE_PATH = lib.getExe' cfg.package.ffmpeg "ffprobe";
+        }
+        // lib.optionalAttrs (cfg.package ? browser) {
+          HYPERFRAMES_BROWSER_PATH = "${cfg.package.browser}/bin/chrome-headless-shell";
+        };
+      }
+
       (lib.mkIf cfg.enableClaudeCodeIntegration {
         programs.claude-code.plugins.hyperframes = cfg.plugin;
       })
