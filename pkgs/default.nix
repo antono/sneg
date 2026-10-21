@@ -27,6 +27,11 @@ import ./mcp-servers { inherit final prev; }
 
   hacktv = final.callPackage ./hacktv/package.nix { };
 
+  hyperframes = final.callPackage ./hyperframes/package.nix { };
+
+  # The skills, as an agent plugin wired to the CLI above.
+  hyperframes-plugin = final.hyperframes.plugin;
+
   mcphub = final.callPackage ./mcphub/package.nix { };
 
   tolaria-mcp = tolaria.mcp;

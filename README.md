@@ -37,6 +37,8 @@ inputs.sneg.packages.${system}.deplexity
 | [`tolaria-node-modules`](https://github.com/antono/tolaria) | Tolaria's pnpm dependency closure, exposed so the hash can be rebuilt on its own |
 | [`tolaria-src`](https://github.com/antono/tolaria) | Tolaria's fetched source, exposed so it can be realised on its own |
 | [`hacktv`](https://github.com/captainjack64/hacktv) | Analogue TV signal generator for SDR hardware |
+| [`hyperframes`](https://github.com/heygen-com/hyperframes) | HyperFrames CLI: HTML compositions rendered to deterministic video, wired to nixpkgs' ffmpeg and headless Chrome |
+| [`hyperframes-plugin`](https://github.com/heygen-com/hyperframes) | HyperFrames' 21 agent skills as a read-only plugin whose launcher runs the CLI above |
 | [`mcphub`](https://github.com/samanhappy/mcphub) | Self-hosted MCP gateway: fronts many MCP servers behind one endpoint, with a dashboard |
 | [`argocd-mcp`](https://github.com/argoproj-labs/mcp-for-argocd) | MCP server for Argo CD |
 | [`blender-mcp`](https://projects.blender.org/lab/blender_mcp) | MCP server for Blender (pairs with an extension installed into Blender) |
@@ -223,6 +225,74 @@ pkgs/mcphub/package.nix
 tests/mcphub-module.nix   checks.<system>.mcphub-module — the rendered unit,
                           the start script, and the merge rule actually run
 ```
+
+## HyperFrames
+
+`homeManagerModules.hyperframes` installs the CLI and hands the skills to
+Claude Code and Codex as a plugin:
+
+```nix
+{
+  imports = [ inputs.sneg.homeManagerModules.hyperframes ];
+
+  programs.hyperframes.enable = true;
+  # On by default whenever the agent's own module is enabled.
+  # programs.hyperframes.enableClaudeCodeIntegration = true;
+  # programs.hyperframes.enableCodexIntegration = true;
+
+  # ~/.agents/skills, for codex, opencode, gemini-cli and anything else that
+  # follows the Agent Skills convention. Off by default.
+  programs.hyperframes.enableAgentsSkills = true;
+}
+```
+
+In Claude Code the router is `/hyperframes:hyperframes`.
+
+`enableAgentsSkills` links each skill to `~/.agents/skills/<name>`, one link per
+skill so the directory stays shared with skills installed by other means. It
+also writes `~/.agents/plugin.json`, which is not an accident: see below. Codex
+reads `~/.agents/skills` as well as its plugins, so turning this on switches
+`enableCodexIntegration` off by default, and forcing both on warns.
+
+The skills go in as a plugin, never as loose skill directories, because the
+router decides how to behave by looking for a plugin manifest two levels above
+its own `SKILL.md`. With one, it treats the install as read-only and runs every
+CLI call through `skills/hyperframes/scripts/plugin-cli.mjs`, which sneg patches
+to run the Nix-built binary instead of `npx hyperframes@<version>`. Without one
+(`~/.claude/skills/<name>`), it falls back to standalone mode: it downloads a
+second CLI from npm and runs `hyperframes skills update` against skills that
+live in the store. claude-code and codex take plugins natively. For
+`~/.agents/skills` the module keeps the same shape by hand: with the manifest at
+`~/.agents/plugin.json`, two levels above every
+`~/.agents/skills/<name>/SKILL.md`, the router finds a plugin root there too.
+
+The launcher is not the only way the skills reach for npx: media-use's helpers
+(transcribe, resolve, TTS) and pr-to-video's preflight spawn `npx hyperframes`
+from the user's project, where it would download the latest release. Those are
+patched to the same binary, and `checks.<system>.hyperframes-module` fails if a
+bump adds a script that spawns npx directly.
+
+The CLI is wrapped with `--set-default`, so each of these can still be
+overridden from the environment:
+
+- `HYPERFRAMES_BROWSER_PATH`: Playwright's patched `chrome-headless-shell`
+  (linux). It keeps the fast BeginFrame capture path, which full chromium
+  lacks. On darwin the CLI downloads its own copy on first use.
+- `HYPERFRAMES_FFMPEG_PATH` / `HYPERFRAMES_FFPROBE_PATH`: `ffmpeg-headless`.
+- `HYPERFRAMES_NO_UPDATE_CHECK`, `HYPERFRAMES_NO_AUTO_INSTALL`,
+  `HYPERFRAMES_SKIP_SKILLS`: Nix owns updates and skills. `init` ignores its
+  own `--skip-skills` flag and only honors the variable.
+- `HYPERFRAMES_NO_TELEMETRY`: opt-out by default.
+
+Optional extras the skills can use (whisper-cpp for transcription, Kokoro TTS,
+MusicGen) are not bundled. `hyperframes doctor` lists what is missing. Bundled
+helper scripts run under the agent's own `node`, so the plugin expects one on
+`PATH`.
+
+The CLI is built from the npm tarball (upstream's tsup bundle) with a vendored
+lockfile, so a bump means regenerating that lockfile. The steps are at the
+bottom of `pkgs/hyperframes/package.nix`. The plugin follows the CLI's version
+and only needs its own `src` hash refreshed.
 
 ## Layout for MCP servers
 

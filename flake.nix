@@ -59,6 +59,12 @@
       # into the hub's own settings — so import either or both.
       homeManagerModules.mcphub = import ./modules/mcphub.nix { overlay = self.overlays.default; };
 
+      # The hyperframes CLI, with its skills installed as a Claude Code and/or
+      # Codex plugin — see ./modules/hyperframes.nix for why not plain skills.
+      homeManagerModules.hyperframes = import ./modules/hyperframes.nix {
+        overlay = self.overlays.default;
+      };
+
       packages = forAllSystems (
         pkgs:
         let
@@ -95,6 +101,10 @@
           # Not `mcphub`: `packages.<system>.mcphub` is already in this set, and
           # the `//` would silently drop the package in favour of its test.
           mcphub-module = import ./tests/mcphub-module.nix { inherit pkgs; };
+          hyperframes-module = import ./tests/hyperframes-module.nix {
+            inherit pkgs;
+            overlay = self.overlays.default;
+          };
         }
       );
 
