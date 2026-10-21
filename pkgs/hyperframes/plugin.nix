@@ -42,7 +42,14 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       cli = lib.getExe hyperframes;
     in
     ''
-      # The launcher every skill command goes through in plugin mode.
+      # The launcher every skill command goes through in plugin mode. It reads
+      # the release from the manifest three levels above its own real path,
+      # which holds only while the plugin stays in one piece; tools that copy
+      # skills/<name> elsewhere (agent-skills-nix, say) leave it behind. The
+      # version is known here, so bake it in.
+      substituteInPlace skills/hyperframes/scripts/plugin-cli.mjs --replace-fail \
+        '    version = pluginVersion(),' \
+        '    version = "${finalAttrs.version}",'
       substituteInPlace skills/hyperframes/scripts/plugin-cli.mjs --replace-fail \
         'const cliArgs = ["--yes", `hyperframes@''${version}`, ...args];' \
         'return { command: "${cli}", args, env: childEnv };

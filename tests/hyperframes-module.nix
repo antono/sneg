@@ -82,6 +82,11 @@ pkgs.runCommand "sneg-hyperframes-module" { nativeBuildInputs = [ pkgs.nodejs ];
     if (command !== '${lib.getExe package}') throw new Error('launcher runs ' + command);
   "
 
+  # Still true once the skill is copied out of the plugin, away from its
+  # manifests, the way agent-skills-nix lays out ~/.agents/skills.
+  cp -r ${plugin}/skills/hyperframes loose
+  [ "$(node loose/scripts/plugin-cli.mjs --version)" = ${plugin.version} ]
+
   # Both media-use resolvers, called the way their callers do.
   node --input-type=module -e "
     const { resolveNpxInvocation } = await import('${plugin}/skills/media-use/scripts/lib/npx-sync.mjs');
