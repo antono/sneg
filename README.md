@@ -32,10 +32,10 @@ inputs.sneg.packages.${system}.deplexity
 | --- | --- |
 | [`deplexity`](https://github.com/clappingmonkey/Deplexity) | Export Perplexity AI conversations, spaces and profile to JSON/Markdown/PDF |
 | [`deplexity-with-chromium`](https://github.com/clappingmonkey/Deplexity) | Same, bundling Chromium so `deplexity login` works out of the box (linux only) |
-| [`tolaria`](https://github.com/antono/tolaria) | Tolaria desktop app bundled with its MCP server (linux only — WebKitGTK 4.1) |
-| [`tolaria-mcp`](https://github.com/antono/tolaria) | Just the Tolaria MCP server: vault tools over stdio + a WebSocket bridge |
-| [`tolaria-node-modules`](https://github.com/antono/tolaria) | Tolaria's pnpm dependency closure, exposed so the hash can be rebuilt on its own |
-| [`tolaria-src`](https://github.com/antono/tolaria) | Tolaria's fetched source, exposed so it can be realised on its own |
+| [`tolaria`](https://github.com/refactoringhq/tolaria) | Tolaria desktop app bundled with its MCP server (linux only — WebKitGTK 4.1) |
+| [`tolaria-mcp`](https://github.com/refactoringhq/tolaria) | Just the Tolaria MCP server: vault tools over stdio + a WebSocket bridge |
+| [`tolaria-node-modules`](https://github.com/refactoringhq/tolaria) | Tolaria's pnpm dependency closure, exposed so the hash can be rebuilt on its own |
+| [`tolaria-src`](https://github.com/refactoringhq/tolaria) | Tolaria's fetched source, exposed so it can be realised on its own |
 | [`hacktv`](https://github.com/captainjack64/hacktv) | Analogue TV signal generator for SDR hardware |
 | [`hyperframes`](https://github.com/heygen-com/hyperframes) | HyperFrames CLI: HTML compositions rendered to deterministic video, wired to nixpkgs' ffmpeg and headless Chrome |
 | [`hyperframes-plugin`](https://github.com/heygen-com/hyperframes) | HyperFrames' 21 agent skills as a read-only plugin whose launcher runs the CLI above |

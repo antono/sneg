@@ -1,16 +1,18 @@
 # Tolaria — personal knowledge and life management app (Tauri 2 + React 19).
 #
-# Ported from the `nixos` branch of github:antono/tolaria, which carries the
-# project's own flake under nix/. The pieces are kept as separate files, as
-# upstream has them, so changes can be diffed against it. What changed here:
+# The build files are ported from the `nixos` branch of github:antono/tolaria,
+# which carries a flake under nix/. The pieces are kept as separate files, as
+# that branch has them, so changes can be diffed against it. What changed here:
 #
-#   * `src` is fetched by rev instead of being a `lib.fileset` over the repo
+#   * `src` is fetched from GitHub instead of being a `lib.fileset` over the repo
 #     checkout. The filesets existed to keep rebuilds from triggering on
 #     unrelated files; a pinned fetch is already immutable, so they are gone.
 #   * `version` comes from this file rather than being hardcoded per output.
 #
-# The branch has no release tag, so the pin is a commit and the version uses
-# the nixpkgs `-unstable-<date>` convention. Advance both together.
+# The source is the upstream release tag, not the fork: the fork only adds the
+# nix/ files, which live here. Upstream tags stable releases by date
+# (`v2026-10-13`) and leaves the in-tree version at 0.1.0, so the date is the
+# version. Pre-releases are tagged `alpha-v...`; skip those.
 {
   lib,
   pkgs,
@@ -22,13 +24,13 @@
 }:
 
 let
-  version = "0.1.0-unstable-2026-08-03";
+  version = "2026-10-13";
 
   src = fetchFromGitHub {
-    owner = "antono";
+    owner = "refactoringhq";
     repo = "tolaria";
-    rev = "ee192622e903b6a8bac18ff346bb6e4e4cd88a6d";
-    hash = "sha256-yHU6sKz9PrRQbqVp2pzprCL4HM10Zo20szVvPMYg5bU=";
+    tag = "v${version}";
+    hash = "sha256-gB3PHW88GN9oGWt9v5LYN1Jbs1Bcy4SfkdivjaZj12k=";
   };
 
   rust = import ./rust-toolchain.nix {
