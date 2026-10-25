@@ -23,6 +23,13 @@ let
   pnpm = pkgs.pnpm_11 or pkgs.pnpm;
   pnpmConfigMerge = import ./merge-pnpm-config.nix { inherit pkgs; };
 
+  # The tree says 0.1.0; release CI stamps the tag's date into tauri.conf.json
+  # as semver (`v2026-10-13` -> `2026.10.13`, no leading zeros). The updater
+  # compares against that, so an unstamped build always offers an update.
+  releaseVersion = lib.concatMapStringsSep "." (part: toString (lib.toIntBase10 part)) (
+    lib.splitString "-" version
+  );
+
   # `tauri/custom-protocol` flips Tauri from dev to production at runtime
   # (tauri::is_dev() == !cfg!(feature = "custom-protocol")). Without it, the
   # release binary still loads from `devUrl` and shows "Could not connect to
@@ -48,6 +55,7 @@ let
     clang
     cmake
     python3
+    jq
     sqlite
     wrapGAppsHook3
   ];
@@ -97,7 +105,10 @@ let
       "Office"
       "Utility"
     ];
-    startupWMClass = "Tolaria";
+    # Tauri leaves the GTK app id unset (enableGTKAppId is off), so on Wayland
+    # the window's app_id is the program name. GNOME matches it to this entry
+    # case-sensitively; "Tolaria" left the window switcher without an icon.
+    startupWMClass = "tolaria";
     startupNotify = true;
   };
 
@@ -143,6 +154,11 @@ craneLib.buildPackage {
   # We supply our own installPhaseCommand below — bypass crane's automatic
   # binary detection (which expects a JSON-formatted cargo build log).
   doNotPostBuildInstallCargoBinaries = true;
+
+  postPatch = ''
+    jq --arg v "${releaseVersion}" '.version = $v' src-tauri/tauri.conf.json > tauri.conf.json.tmp
+    mv tauri.conf.json.tmp src-tauri/tauri.conf.json
+  '';
 
   preConfigure = ''
     # fetchPnpmDeps emits a content-addressed pnpm store, not a flat
