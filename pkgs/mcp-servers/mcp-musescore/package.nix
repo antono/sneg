@@ -7,6 +7,14 @@
 }:
 
 let
+  # nixpkgs moved `mcp` to 2.x and marked fastmcp 3.x broken against it; until
+  # fastmcp 4 lands there, keep this server's closure on the 1.x SDK. Older
+  # nixpkgs without `mcp_1` still has 1.x as plain `mcp`.
+  python = python3.override {
+    self = python;
+    packageOverrides = final: prev: lib.optionalAttrs (prev ? mcp_1) { mcp = final.mcp_1; };
+  };
+
   # Upstream asks for fastmcp>=4,<5; nixpkgs has 3.4.7. Everything the server
   # imports from it — FastMCP, fastmcp.apps, ToolResult, ToolError — is already
   # in 3.x, and the check below runs upstream's suite against this env.
@@ -14,7 +22,7 @@ let
     ps.fastmcp
     ps.websockets
   ];
-  pythonEnv = python3.withPackages pythonDeps;
+  pythonEnv = python.withPackages pythonDeps;
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "mcp-musescore";
@@ -43,7 +51,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     substituteInPlace tests/test_server.py \
       --replace-fail 'tool.input_schema' 'tool.inputSchema'
   '';
-  nativeCheckInputs = [ (python3.withPackages (ps: pythonDeps ps ++ [ ps.pytest ])) ];
+  nativeCheckInputs = [ (python.withPackages (ps: pythonDeps ps ++ [ ps.pytest ])) ];
   checkPhase = ''
     runHook preCheck
     pytest -p no:cacheprovider
