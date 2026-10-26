@@ -9,9 +9,19 @@
 {
   lib,
   fetchFromGitHub,
-  python3Packages,
+  python3,
 }:
 
+let
+  # The server imports mcp.server.fastmcp, which mcp 2.x removed (FastMCP is
+  # now mcp.server.mcpserver.MCPServer); keep its closure on the 1.x SDK.
+  # Older nixpkgs without `mcp_1` still has 1.x as plain `mcp`.
+  python = python3.override {
+    self = python;
+    packageOverrides = final: prev: lib.optionalAttrs (prev ? mcp_1) { mcp = final.mcp_1; };
+  };
+  python3Packages = python.pkgs;
+in
 python3Packages.buildPythonApplication rec {
   pname = "telegram-mcp";
   version = "3.2.85";
