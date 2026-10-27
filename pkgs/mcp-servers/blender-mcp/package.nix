@@ -30,9 +30,19 @@
   blender,
   fetchgit,
   makeWrapper,
-  python3Packages,
+  python3,
 }:
 
+let
+  # Upstream pins mcp<2 (the server is written against FastMCP), and nixpkgs
+  # now ships mcp 2.x; keep its closure on the 1.x SDK. Older nixpkgs without
+  # `mcp_1` still has 1.x as plain `mcp`.
+  python = python3.override {
+    self = python;
+    packageOverrides = final: prev: lib.optionalAttrs (prev ? mcp_1) { mcp = final.mcp_1; };
+  };
+  python3Packages = python.pkgs;
+in
 python3Packages.buildPythonApplication rec {
   pname = "blender-mcp";
   version = "1.0.3";
