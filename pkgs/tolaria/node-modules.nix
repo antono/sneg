@@ -32,7 +32,7 @@ pkgs.fetchPnpmDeps {
   # it as an index.db.sql dump reconstructed by pnpmConfigHook/our consumers).
   pnpm = pkgs.pnpm_11 or pkgs.pnpm;
   fetcherVersion = 4;
-  hash = "sha256-LKNAsMHN1ShmQ+8A+u0u2Gg/XGnpOryhjT+xVKd8XNQ=";
+  hash = "sha256-SyLFDZw/5VeDvv/n06gyNOOUduPV9UvVhkxD4vKTxwU=";
 
   # Mirror pnpm.overrides + pnpm.patchedDependencies from package.json into
   # pnpm-workspace.yaml so pnpm 11's strict frozen-install reads them, and

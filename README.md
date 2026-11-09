@@ -45,8 +45,8 @@ inputs.sneg.packages.${system}.deplexity
 | [`blender-mcp`](https://projects.blender.org/lab/blender_mcp) | MCP server for Blender (pairs with an extension installed into Blender) |
 | [`freecad-mcp`](https://github.com/neka-nat/freecad-mcp) | MCP server for FreeCAD (pairs with an addon installed into FreeCAD) |
 | [`greenhouse-mcp`](https://github.com/UladzislauRedzko/greenhouse-mcp) | MCP server for the Greenhouse Harvest API |
-| [`kicad-mcp`](https://github.com/mixelpixx/KiCAD-MCP-Server) | MCP server for KiCAD (wraps a KiCAD install: its `pcbnew` bindings, CLI and libraries) |
-| [`konnect`](https://github.com/mixelpixx/Konnect) | MCP server for KiCAD 10, the Rust rewrite of the above — one binary, over KiCAD's IPC API |
+| [`kicad-mcp`](https://github.com/mixelpixx/KiCAD-MCP-Server) | MCP server for KiCAD (wraps a KiCAD install: its `pcbnew` bindings, CLI and libraries; not on darwin, where nixpkgs' KiCAD is broken) |
+| [`konnect`](https://github.com/mixelpixx/Konnect) | MCP server for KiCAD 10, the Rust rewrite of the above — one binary, over KiCAD's IPC API (not on darwin) |
 | [`mcp-musescore`](https://github.com/ghchen99/mcp-musescore) | MCP server for MuseScore (pairs with a QML plugin) |
 | [`signoz-mcp-server`](https://github.com/SigNoz/signoz-mcp-server) | MCP server for SigNoz |
 | [`telegram-mcp`](https://github.com/chigwell/telegram-mcp) | MCP server for Telegram, acting as your user account (not a bot) via Telethon |

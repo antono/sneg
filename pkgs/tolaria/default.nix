@@ -24,13 +24,13 @@
 }:
 
 let
-  version = "2026-10-13";
+  version = "2026-11-06";
 
   src = fetchFromGitHub {
     owner = "refactoringhq";
     repo = "tolaria";
     tag = "v${version}";
-    hash = "sha256-gB3PHW88GN9oGWt9v5LYN1Jbs1Bcy4SfkdivjaZj12k=";
+    hash = "sha256-k0uuabNdl0aRxt41mKctrVDNqKwt7fmgTa3ANJZvofY=";
   };
 
   rust = import ./rust-toolchain.nix {
