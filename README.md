@@ -40,6 +40,7 @@ inputs.sneg.packages.${system}.deplexity
 | [`hyperframes`](https://github.com/heygen-com/hyperframes) | HyperFrames CLI: HTML compositions rendered to deterministic video, wired to nixpkgs' ffmpeg and headless Chrome |
 | [`hyperframes-plugin`](https://github.com/heygen-com/hyperframes) | HyperFrames' 21 agent skills as a read-only plugin whose launcher runs the CLI above |
 | [`mcphub`](https://github.com/samanhappy/mcphub) | Self-hosted MCP gateway: fronts many MCP servers behind one endpoint, with a dashboard |
+| [`wgaf`](https://github.com/Ranrar/wgaf) | Wayland automation for GNOME Shell: daemon + CLI for windows, keyboard/mouse and AT-SPI, with its Shell extension and systemd user unit (linux only) |
 | [`argocd-mcp`](https://github.com/argoproj-labs/mcp-for-argocd) | MCP server for Argo CD |
 | [`blender-mcp`](https://projects.blender.org/lab/blender_mcp) | MCP server for Blender (pairs with an extension installed into Blender) |
 | [`freecad-mcp`](https://github.com/neka-nat/freecad-mcp) | MCP server for FreeCAD (pairs with an addon installed into FreeCAD) |

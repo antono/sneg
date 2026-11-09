@@ -48,4 +48,7 @@ import ./mcp-servers { inherit final prev; }
 
   # The desktop app needs the WebKitGTK 4.1 stack.
   tolaria = tolaria.bundle;
+
+  # Wayland, /dev/uinput and a GNOME Shell extension.
+  wgaf = final.callPackage ./wgaf/package.nix { };
 }
