@@ -49,6 +49,10 @@ let
   plugins = evalWith { };
   inherit (plugins.programs.hyperframes) package plugin;
 
+  # The package wires in headless Chrome on Linux only; elsewhere the session
+  # must not point at one either.
+  hasBrowser = package ? browser;
+
   # ~/.agents too, which turns the codex plugin off by default…
   agents = evalWith { programs.hyperframes.enableAgentsSkills = true; };
   agentFiles = lib.attrNames agents.home.file;
@@ -65,8 +69,11 @@ assert plugins.programs.codex.plugins == [ plugin ];
 assert plugins.home.file == { };
 assert plugins.home.sessionVariables.HYPERFRAMES_SKIP_SKILLS == "1";
 assert plugins.home.sessionVariables.HYPERFRAMES_FFMPEG_PATH == lib.getExe' package.ffmpeg "ffmpeg";
-assert lib.hasSuffix "/bin/chrome-headless-shell"
-  plugins.home.sessionVariables.HYPERFRAMES_BROWSER_PATH;
+assert
+  if hasBrowser then
+    lib.hasSuffix "/bin/chrome-headless-shell" plugins.home.sessionVariables.HYPERFRAMES_BROWSER_PATH
+  else
+    !(plugins.home.sessionVariables ? HYPERFRAMES_BROWSER_PATH);
 
 assert agents.programs.claude-code.plugins.hyperframes == plugin;
 assert agents.programs.codex.plugins == [ ];
@@ -126,10 +133,11 @@ pkgs.runCommand "sneg-hyperframes-module" { nativeBuildInputs = [ pkgs.nodejs ];
     test -f ${plugin}/skills/$name/SKILL.md
   done
 
-  # The browser the session points npx at must actually be there.
-  test -x ${plugins.home.sessionVariables.HYPERFRAMES_BROWSER_PATH}
-  # …and drop the Wayland display, which costs headless Chrome its WebGL.
-  grep -q 'unset WAYLAND_DISPLAY' ${plugins.home.sessionVariables.HYPERFRAMES_BROWSER_PATH}
-
+  ${lib.optionalString hasBrowser ''
+    # The browser the session points npx at must actually be there.
+    test -x ${plugins.home.sessionVariables.HYPERFRAMES_BROWSER_PATH}
+    # …and drop the Wayland display, which costs headless Chrome its WebGL.
+    grep -q 'unset WAYLAND_DISPLAY' ${plugins.home.sessionVariables.HYPERFRAMES_BROWSER_PATH}
+  ''}
   touch $out
 ''

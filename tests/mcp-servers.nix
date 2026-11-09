@@ -41,13 +41,15 @@ snegLib.mkConfig pkgs {
     };
     freecad.enable = true;
     greenhouse.enable = true;
+    # Neither package exists on darwin, where KiCAD itself is broken — see
+    # ../pkgs/mcp-servers/default.nix.
     kicad = {
-      enable = true;
+      enable = !pkgs.stdenv.hostPlatform.isDarwin;
       backend = "swig";
       logLevel = "debug";
     };
     konnect = {
-      enable = true;
+      enable = !pkgs.stdenv.hostPlatform.isDarwin;
       logLevel = "konnect=debug";
     };
     musescore.enable = true;

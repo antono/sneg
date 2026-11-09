@@ -19,12 +19,15 @@ jobs:
           persist-credentials: false
       - uses: DeterminateSystems/determinate-nix-action@v3
 
-      # Must come before the check. Evaluating tolaria is
-      # import-from-derivation (crane reads Cargo.lock/Cargo.toml out of the
-      # fetched tree), and `--no-build` refuses to realise that source, so the
-      # check cannot instantiate tolaria until the source is already in the
-      # store. Fetching it costs one tarball.
-      - run: nix build --no-link .#tolaria-src
+      # Must come before the check. Two outputs are import-from-derivation:
+      # tolaria (crane reads Cargo.lock/Cargo.toml out of the fetched tree)
+      # and hyperframes-plugin (skillNames reads skills-manifest.json out of
+      # its fetched tree, which checks.hyperframes-module evaluates).
+      # `--no-build` refuses to realise either source, so the check cannot
+      # instantiate them until both are already in the store. Fetching them
+      # costs two tarballs. A new IFD source belongs on this line, and on the
+      # matching one in `publish`.
+      - run: nix build --no-link .#tolaria-src .#hyperframes-plugin.src
 
       # Evaluate the outputs, but build nothing yet.
       #
@@ -62,11 +65,11 @@ jobs:
 
       # Same import-from-derivation as in `check`, and a fresh store on this
       # runner. flakehub-push evaluates the outputs of *every* system, so
-      # without this the aarch64 source derivation would have to be realised
-      # on an x86_64 runner — "Reason: platform mismatch". The source is a
+      # without this the aarch64 source derivations would have to be realised
+      # on an x86_64 runner — "Reason: platform mismatch". Each source is a
       # fixed-output derivation, so its store path is content-addressed and
       # identical across systems: realising it once satisfies all of them.
-      - run: nix build --no-link .#tolaria-src
+      - run: nix build --no-link .#tolaria-src .#hyperframes-plugin.src
 
       - uses: DeterminateSystems/flakehub-push@main
         with:
