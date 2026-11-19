@@ -39,6 +39,7 @@ inputs.sneg.packages.${system}.deplexity
 | [`hacktv`](https://github.com/captainjack64/hacktv) | Analogue TV signal generator for SDR hardware |
 | [`hyperframes`](https://github.com/heygen-com/hyperframes) | HyperFrames CLI: HTML compositions rendered to deterministic video, wired to nixpkgs' ffmpeg and headless Chrome |
 | [`hyperframes-plugin`](https://github.com/heygen-com/hyperframes) | HyperFrames' 21 agent skills as a read-only plugin whose launcher runs the CLI above |
+| [`hylki`](https://github.com/hyprlab/hylki) | GNOME-native email client in Rust: GTK4/libadwaita, WebKitGTK 6, IMAP/SMTP, JMAP, Microsoft 365 (linux only) |
 | [`paper-plane`](https://github.com/vitlav/paper-plane) | GTK4/libadwaita Telegram client — vitlav's maintained fork, on a pinned TDLib 1.8.65 (linux only) |
 | [`mcphub`](https://github.com/samanhappy/mcphub) | Self-hosted MCP gateway: fronts many MCP servers behind one endpoint, with a dashboard |
 | [`wgaf`](https://github.com/Ranrar/wgaf) | Wayland automation for GNOME Shell: daemon + CLI for windows, keyboard/mouse and AT-SPI, with its Shell extension and systemd user unit (linux only) |

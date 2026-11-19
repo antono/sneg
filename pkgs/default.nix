@@ -47,6 +47,8 @@ import ./mcp-servers { inherit final prev; }
   };
 
   # GTK4 Telegram client; TDLib and GStreamer plumbing are linux-only here.
+  hylki = final.callPackage ./hylki/package.nix { };
+
   paper-plane = final.callPackage ./paper-plane/package.nix { };
 
   # The desktop app needs the WebKitGTK 4.1 stack.
