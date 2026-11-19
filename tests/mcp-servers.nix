@@ -1,5 +1,5 @@
 # Proves the composition holds: the six servers taken from mcp-servers-nix and
-# the nine kept here resolve their packages and render into one config file.
+# the ten kept here resolve their packages and render into one config file.
 #
 # Building this is the whole assertion — a missing package name, an option that
 # does not exist, or two modules fighting over the same `settings.servers` key
@@ -40,6 +40,11 @@ snegLib.mkConfig pkgs {
       port = 9876;
     };
     freecad.enable = true;
+    gimp = {
+      enable = true;
+      port = 9877;
+      timeout = 900;
+    };
     greenhouse.enable = true;
     # Neither package exists on darwin, where KiCAD itself is broken — see
     # ../pkgs/mcp-servers/default.nix.

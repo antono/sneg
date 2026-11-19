@@ -11,6 +11,7 @@
   argocd-mcp = final.callPackage ./argocd-mcp/package.nix { };
   blender-mcp = final.callPackage ./blender-mcp/package.nix { };
   freecad-mcp = final.callPackage ./freecad-mcp/package.nix { };
+  gimp-mcp = final.callPackage ./gimp-mcp/package.nix { };
   greenhouse-mcp = final.callPackage ./greenhouse-mcp/package.nix { };
   mcp-musescore = final.callPackage ./mcp-musescore/package.nix { };
   signoz-mcp-server = final.callPackage ./signoz-mcp-server/package.nix { };

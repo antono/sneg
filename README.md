@@ -46,6 +46,7 @@ inputs.sneg.packages.${system}.deplexity
 | [`argocd-mcp`](https://github.com/argoproj-labs/mcp-for-argocd) | MCP server for Argo CD |
 | [`blender-mcp`](https://projects.blender.org/lab/blender_mcp) | MCP server for Blender (pairs with an extension installed into Blender) |
 | [`freecad-mcp`](https://github.com/neka-nat/freecad-mcp) | MCP server for FreeCAD (pairs with an addon installed into FreeCAD) |
+| [`gimp-mcp`](https://github.com/gimp-mcp/gimp-mcp) | MCP server for GIMP 3.2 (pairs with a plug-in loaded into GIMP; see its README for `gimp3-with-plugins`) |
 | [`greenhouse-mcp`](https://github.com/UladzislauRedzko/greenhouse-mcp) | MCP server for the Greenhouse Harvest API |
 | [`kicad-mcp`](https://github.com/mixelpixx/KiCAD-MCP-Server) | MCP server for KiCAD (wraps a KiCAD install: its `pcbnew` bindings, CLI and libraries; not on darwin, where nixpkgs' KiCAD is broken) |
 | [`konnect`](https://github.com/mixelpixx/Konnect) | MCP server for KiCAD 10, the Rust rewrite of the above — one binary, over KiCAD's IPC API (not on darwin) |
