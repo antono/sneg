@@ -18,6 +18,7 @@
   cairo,
   pango,
   openssl,
+  sqlcipher,
   wayland,
   glib-networking,
 }:
@@ -49,7 +50,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
     poppler # poppler-glib: PDF attachment thumbnails
     cairo
     pango
-    openssl # native-tls, and libcrypto for the bundled SQLCipher
+    openssl # native-tls
+    sqlcipher # rusqlite links the system libsqlcipher (-lsqlcipher)
     wayland # wayland-backend client_system
     glib-networking # TLS for WebKit
   ];
