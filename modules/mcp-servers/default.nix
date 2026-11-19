@@ -1,5 +1,6 @@
 # The list of server modules, discovered from this directory so that adding a
-# server means dropping one file in here.
+# server means dropping one file in here. home-packages.nix is the one
+# exception: an option the servers share, not a server.
 #
 # These are mcp-servers-nix modules, not standalone ones: they expect the
 # `mkServerModule` specialArg that upstream's `lib.evalModule` provides. Use

@@ -23,6 +23,10 @@ let
 
   servers = evaluated.config.settings.servers or { };
 
+  # What servers ask to have installed next to them — see
+  # ./mcp-servers/home-packages.nix.
+  homePackages = evaluated.config.homePackages or [ ];
+
   # home-manager infers the transport from the presence of `command` (stdio) or
   # `url` (remote), so `type` is dropped rather than passed through.
   transformServer =
@@ -68,7 +72,10 @@ in
     };
   };
 
-  config = lib.mkIf (servers != { }) {
-    programs.mcp.servers = lib.mapAttrs transformServer servers;
-  };
+  config = lib.mkMerge [
+    (lib.mkIf (servers != { }) {
+      programs.mcp.servers = lib.mapAttrs transformServer servers;
+    })
+    { home.packages = homePackages; }
+  ];
 }

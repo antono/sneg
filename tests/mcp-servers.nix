@@ -42,7 +42,8 @@ snegLib.mkConfig pkgs {
     freecad.enable = true;
     gimp = {
       enable = true;
-      port = 9877;
+      autostart = true;
+      port = 9988;
       timeout = 900;
     };
     greenhouse.enable = true;

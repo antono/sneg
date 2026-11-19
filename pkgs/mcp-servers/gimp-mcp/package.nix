@@ -16,11 +16,19 @@
 # under lib/gimp for `gimp3-with-plugins` — get the same interpreter nixpkgs'
 # GIMP uses for its own Python plug-ins: python3 with pygobject3. The typelibs
 # come from GIMP itself, whose wrapper exports GI_TYPELIB_PATH to its plug-ins.
+#
+# `autostart` and `port` become the plug-in's defaults (its DEFAULT_SETTINGS),
+# and `port` the server's too, so one override keeps both halves on the same
+# port. They stay defaults: whatever GIMP's Tools > MCP > MCP Server Settings…
+# dialog has saved to gimp-mcp.json in GIMP's config folder still wins, so the
+# dialog keeps working — delete that file to fall back to these.
 {
   lib,
   fetchFromGitHub,
   gimp3,
   python3,
+  autostart ? false,
+  port ? 9877,
 }:
 
 let
@@ -58,7 +66,11 @@ python3Packages.buildPythonApplication rec {
   # command this package installs instead.
   postPatch = ''
     substituteInPlace gimp-mcp-plugin.py \
-      --replace-fail '#!/usr/bin/env python3' '#!${pluginPython.interpreter}'
+      --replace-fail '#!/usr/bin/env python3' '#!${pluginPython.interpreter}' \
+      --replace-fail 'DEFAULT_SETTINGS = {"autostart": False, "port": DEFAULT_PORT}' \
+                     'DEFAULT_SETTINGS = {"autostart": ${
+                       if autostart then "True" else "False"
+                     }, "port": ${toString port}}'
 
     substituteInPlace gimp_mcp_server.py \
       --replace-fail 'f"uvx gimp-mcp-plugin@{SERVER_VERSION} install-plugin"' \
@@ -72,6 +84,15 @@ python3Packages.buildPythonApplication rec {
     install -Dm755 gimp-mcp-plugin.py \
       $out/${gimp3.targetPluginDir}/gimp-mcp-plugin/gimp-mcp-plugin.py
   '';
+
+  # Added to the wrappers buildPythonApplication already writes around both
+  # entry points. `--set-default`, so a GIMP_MCP_PORT from the client's
+  # config still wins.
+  makeWrapperArgs = [
+    "--set-default"
+    "GIMP_MCP_PORT"
+    (toString port)
+  ];
 
   # The test suite is a set of standalone scripts, most of them driving a live
   # GIMP; the install check below covers what matters for packaging.
@@ -89,6 +110,9 @@ python3Packages.buildPythonApplication rec {
     test -x "$installed"
     head -1 "$installed" | grep -qF '${pluginPython.interpreter}'
     ${pluginPython.interpreter} -c 'import gi'
+    grep -qF 'DEFAULT_SETTINGS = {"autostart": ${
+      if autostart then "True" else "False"
+    }, "port": ${toString port}}' "$installed"
 
     # The MCP prompts read these at runtime. `gimp_mcp_docs` has no __init__.py,
     # so it is a namespace package and only importlib.resources can locate it.

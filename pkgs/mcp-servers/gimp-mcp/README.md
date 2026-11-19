@@ -12,36 +12,48 @@ connection error.
 
 ## Enable it
 
+With Home Manager, this one block is the whole setup: the client config, and a
+GIMP that loads the plug-in and starts it on launch, on the same port.
+
 ```nix
 {
   imports = [ inputs.sneg.homeManagerModules.default ];
 
-  mcp-servers.programs.gimp.enable = true;
+  mcp-servers.programs.gimp = {
+    enable = true;
+    withGimp = true;   # gimp3-with-plugins carrying the plug-in, in home.packages
+    autostart = true;  # start the plug-in's server when GIMP launches
+    port = 9877;       # plug-in and server both; this is the default
+    timeout = 900;     # GIMP_MCP_TIMEOUT, seconds per command
+  };
 }
 ```
 
-Or through `sneg.lib.mkConfig`:
+`withGimp` installs GIMP itself, so drop any other `gimp`/`gimp3` from your
+packages to avoid two of them on PATH. For more plug-ins, set `gimpPackage` to
+`pkgs.gimp3-with-plugins.override { plugins = [ … ]; }`; gimp-mcp is appended
+to that list.
 
-```nix
-programs.mcp.configFile = inputs.sneg.lib.mkConfig pkgs {
-  programs.gimp = {
-    enable = true;
-    port = 9877;     # GIMP_MCP_PORT, must match the plug-in's setting
-    timeout = 900;   # GIMP_MCP_TIMEOUT, seconds per command
-  };
-};
-```
+`autostart` and `port` are baked into the package as the plug-in's
+*defaults*. What GIMP's **Tools > MCP > MCP Server Settings…** dialog saves to
+`~/.config/GIMP/3.2/gimp-mcp.json` still wins, so the dialog keeps working; delete
+that file to go back to what Nix says.
 
-## Load the plug-in into GIMP
+Through `sneg.lib.mkConfig` the same options apply to the server and the
+package, but `withGimp` does nothing — load the plug-in as below.
 
-Pick one.
+## Load the plug-in yourself
+
+Only needed without `withGimp`. Pick one.
 
 **Declaratively**, with nixpkgs' plug-in wrapper (needs `sneg.overlays.default`
 or `sneg.overlays.mcp-servers`):
 
 ```nix
 home.packages = [
-  (pkgs.gimp3-with-plugins.override { plugins = [ pkgs.gimp-mcp ]; })
+  (pkgs.gimp3-with-plugins.override {
+    plugins = [ (pkgs.gimp-mcp.override { autostart = true; }) ];
+  })
 ];
 ```
 
@@ -65,9 +77,9 @@ drop the plug-in without a word.
 
 ## Start it
 
-In GIMP, **Tools > MCP > Start MCP Server**. To skip that on every launch, tick
-**Start MCP server when GIMP launches** in **Tools > MCP > MCP Server Settings…**
-and restart GIMP. The same dialog sets the port.
+With `autostart`, nothing to do. Otherwise, in GIMP: **Tools > MCP > Start MCP
+Server** (or tick **Start MCP server when GIMP launches** in **Tools > MCP > MCP
+Server Settings…**).
 
 The plug-in binds to localhost and takes no authentication: anything that can
 reach the port can run Python inside GIMP.
