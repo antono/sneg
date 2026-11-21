@@ -10,20 +10,23 @@
 }:
 
 let
-  version = "0.4.3";
+  # Hard fork of clappingmonkey/Deplexity taken just before upstream #75 (it
+  # changes the thread directory layout and duplicates existing archives). It
+  # keeps threads/<uuid>/ and adds `export --attachments`. Not a tagged release.
+  version = "0.3.0-unstable-2026-11-21";
 in
 buildGoModule {
   pname = "deplexity";
   inherit version;
 
   src = fetchFromGitHub {
-    owner = "clappingmonkey";
+    owner = "antono";
     repo = "Deplexity";
-    tag = "v${version}";
-    hash = "sha256-+uQ9PR52AAmgQRLK1RxDOrVfI6YslCSTMlJ16UN5IGI=";
+    rev = "e0087fae9dd1263df62b6189ad8886b97b16eaa2";
+    hash = "sha256-vbr2NOUt/4KefV5k+eeyLH4lMxm0gn/y8cSit1RExTw=";
   };
 
-  vendorHash = "sha256-rsroyKHlSNknt66vjgKtjUq2TjCZnr4yMjLcPo45VVY=";
+  vendorHash = "sha256-2iVkSQC8yTAJv6Uyw5Lv62S0NMaSwDsqkzRIWAoMVDw=";
 
   ldflags = [
     "-s"
@@ -41,7 +44,7 @@ buildGoModule {
 
   meta = {
     description = "Export your Perplexity AI conversations, spaces, and profile to JSON, Markdown and PDF";
-    homepage = "https://github.com/clappingmonkey/Deplexity";
+    homepage = "https://github.com/antono/Deplexity";
     license = lib.licenses.mit;
     mainProgram = "deplexity";
     platforms = lib.platforms.unix;

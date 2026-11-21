@@ -30,8 +30,8 @@ inputs.sneg.packages.${system}.deplexity
 
 | Attribute | What |
 | --- | --- |
-| [`deplexity`](https://github.com/clappingmonkey/Deplexity) | Export Perplexity AI conversations, spaces and profile to JSON/Markdown/PDF |
-| [`deplexity-with-chromium`](https://github.com/clappingmonkey/Deplexity) | Same, bundling Chromium so `deplexity login` works out of the box (linux only) |
+| [`deplexity`](https://github.com/antono/Deplexity) | Export Perplexity AI conversations, spaces and profile to JSON/Markdown/PDF. Hard fork of [clappingmonkey/Deplexity](https://github.com/clappingmonkey/Deplexity) that keeps the `threads/<uuid>/` layout and adds `export --attachments` |
+| [`deplexity-with-chromium`](https://github.com/antono/Deplexity) | Same, bundling Chromium so `deplexity login` works out of the box (linux only) |
 | [`tolaria`](https://github.com/refactoringhq/tolaria) | Tolaria desktop app bundled with its MCP server (linux only — WebKitGTK 4.1) |
 | [`tolaria-mcp`](https://github.com/refactoringhq/tolaria) | Just the Tolaria MCP server: vault tools over stdio + a WebSocket bridge |
 | [`tolaria-node-modules`](https://github.com/refactoringhq/tolaria) | Tolaria's pnpm dependency closure, exposed so the hash can be rebuilt on its own |
@@ -362,7 +362,7 @@ generates a first draft.
 ## Bump a package
 
 ```bash
-nix-update --flake deplexity     # rewrites version, src hash and vendorHash
+nix-update --flake deplexity --version=branch=main   # deplexity tracks a fork branch, not tags
 nix flake check -L
 ```
 
