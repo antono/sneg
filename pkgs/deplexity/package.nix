@@ -13,7 +13,7 @@ let
   # Hard fork of clappingmonkey/Deplexity taken just before upstream #75 (it
   # changes the thread directory layout and duplicates existing archives). It
   # keeps threads/<uuid>/ and adds `export --attachments`. Not a tagged release.
-  version = "0.3.0-unstable-2026-11-21";
+  version = "0.3.0-unstable-2026-11-23";
 in
 buildGoModule {
   pname = "deplexity";
@@ -22,8 +22,8 @@ buildGoModule {
   src = fetchFromGitHub {
     owner = "antono";
     repo = "Deplexity";
-    rev = "e0087fae9dd1263df62b6189ad8886b97b16eaa2";
-    hash = "sha256-vbr2NOUt/4KefV5k+eeyLH4lMxm0gn/y8cSit1RExTw=";
+    rev = "b8526d9d23ad48c763a16c8494e80b0b17694afc";
+    hash = "sha256-GwRHUA+DA0GTmZ8bUI7AL6VyOE5Woo0EK2ZLbVfMUQ8=";
   };
 
   vendorHash = "sha256-2iVkSQC8yTAJv6Uyw5Lv62S0NMaSwDsqkzRIWAoMVDw=";
